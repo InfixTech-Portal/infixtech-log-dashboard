@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finance Dashboard | INFI X TECH</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <div id="sidebar-container"></div>
+        <div class="main-content">
+            <div id="header-container"></div>
+            <div class="page-content">
+                <div id="loadingState" class="text-center py-4">
+                    <div style="font-size: 2rem; margin-bottom: 1rem;">⏳</div>
+                    <p class="text-muted">Loading finance data...</p>
+                </div>
+
+                <div id="dashboardContent" style="display: none;">
+                    <!-- Banner -->
+                    <div class="card mb-lg"
+                        style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none;">
+                        <div class="card-body"
+                            style="padding: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                            <div>
+                                <h1 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 0.25rem;">Finance
+                                    Control 💰</h1>
+                                <p style="opacity: 0.9; font-size: 0.9rem;">Manage collections, verify payments, and
+                                    track expenses.</p>
+                            </div>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button class="btn" style="background: rgba(255,255,255,0.2); color: white;"
+                                    onclick="showNewCollectionModal()">+ New Collection</button>
+                                <button class="btn" style="background: rgba(255,255,255,0.2); color: white;"
+                                    onclick="showRecordPaymentModal()">✓ Record Payment</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stats Row -->
+                    <div
+                        style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+                        <div class="card">
+                            <div class="stat-card">
+                                <div class="stat-icon success">🏦</div>
+                                <div>
+                                    <div class="stat-value" id="totalCollected">₹0</div>
+                                    <div class="stat-label">Total Collected</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="stat-card">
+                                <div class="stat-icon warning">⏳</div>
+                                <div>
+                                    <div class="stat-value" id="pendingAmount">₹0</div>
+                                    <div class="stat-label">Pending</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="stat-card">
+                                <div class="stat-icon danger">💸</div>
+                                <div>
+                                    <div class="stat-value" id="myDebt">₹0</div>
+                                    <div class="stat-label">My Outstanding</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="stat-card">
+                                <div class="stat-icon primary">📝</div>
+                                <div>
+                                    <div class="stat-value" id="activeRequests">0</div>
+                                    <div class="stat-label">Active Requests</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Main Grid -->
+                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+                        <!-- Left Column -->
+                        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                            <!-- Chart -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Collection Overview</h3>
+                                </div>
+                                <div class="card-body" style="height: 220px;"><canvas id="collectionChart"></canvas>
+                                </div>
+                            </div>
+
+                            <!-- Active Collections -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Active Collections</h3>
+                                    <button class="btn btn-secondary btn-sm" onclick="downloadReport()">📄
+                                        Export</button>
+                                </div>
+                                <div class="card-body" style="overflow-x: auto;">
+                                    <table style="width: 100%; border-collapse: collapse;">
+                                        <thead>
+                                            <tr style="text-align: left;">
+                                                <th style="padding: 12px; color: var(--text-muted); font-weight: 500;">
+                                                    Title</th>
+                                                <th style="padding: 12px; color: var(--text-muted); font-weight: 500;">
+                                                    Amount</th>
+                                                <th style="padding: 12px; color: var(--text-muted); font-weight: 500;">
+                                                    Progress</th>
+                                                <th style="padding: 12px; color: var(--text-muted); font-weight: 500;">
+                                                    Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="collectionsTable">
+                                            <tr>
+                                                <td colspan="4" class="text-center text-muted py-4">Loading...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Recent Payments -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Recent Payments</h3>
+                                </div>
+                                <div class="card-body" id="recentPayments">
+                                    <p class="text-muted text-center py-4">Loading...</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column -->
+                        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                            <!-- Quick Actions -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Quick Actions</h3>
+                                </div>
+                                <div class="card-body" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                    <button class="btn btn-secondary" style="justify-content: flex-start;"
+                                        onclick="showNewCollectionModal()">💰 New Collection</button>
+                                    <button class="btn btn-secondary" style="justify-content: flex-start;"
+                                        onclick="showRecordPaymentModal()">✓ Record Payment</button>
+                                    <a href="admin/transactions.html" class="btn btn-secondary"
+                                        style="justify-content: flex-start;">💳 Transaction Manager</a>
+                                    <a href="admin/members.html" class="btn btn-secondary"
+                                        style="justify-content: flex-start;">👥 Member Management</a>
+                                    <a href="logs/payment-logs.html" class="btn btn-secondary"
+                                        style="justify-content: flex-start;">📋 Payment Logs</a>
+                                    <button class="btn btn-primary" onclick="downloadReport()">📄 Download
+                                        Report</button>
+                                </div>
+                            </div>
+
+                            <!-- Members with Dues -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Members with Dues</h3>
+                                </div>
+                                <div class="card-body" id="membersDues" style="max-height: 300px; overflow-y: auto;">
+                                    <p class="text-muted text-center py-4">Loading...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/firestore.js"></script>
+    <script src="../js/components.js"></script>
+    <script src="../js/reports.js"></script>
+    <script src="../js/router.js"></script>
+    <script src="../js/app.js"></script>
+
+    <script>
+        let allCollections = [];
+        let allUsers = [];
+
+        window.addEventListener('userDataLoaded', async (e) => {
+            const user = e.detail;
+
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('dashboardContent').style.display = 'block';
+
+            await loadFinanceData(user);
+        });
+
+        async function loadFinanceData(user) {
+            try {
+                // Fetch all data without complex queries to avoid composite index requirements
+                const [finStatus, collectionsSnap, usersSnap, logsSnap] = await Promise.all([
+                    Firestore.getUserFinancialStatus(user.uid),
+                    db.collection('moneyCollections').get(),
+                    db.collection('users').get(),
+                    db.collection('logs').get()
+                ]);
+
+                allCollections = collectionsSnap.docs
+                    .map(d => ({ id: d.id, ...d.data() }))
+                    .sort((a, b) => {
+                        const aDate = a.createdAt?.toDate?.() || new Date(0);
+                        const bDate = b.createdAt?.toDate?.() || new Date(0);
+                        return bDate - aDate;
+                    });
+                allUsers = usersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+                // Filter and sort payments client-side
+                const payments = logsSnap.docs
+                    .map(d => ({ id: d.id, ...d.data() }))
+                    .filter(log => log.type === 'payment')
+                    .sort((a, b) => {
+                        const aDate = a.createdAt?.toDate?.() || new Date(0);
+                        const bDate = b.createdAt?.toDate?.() || new Date(0);
+                        return bDate - aDate;
+                    })
+                    .slice(0, 10);
+
+                // My Outstanding
+                document.getElementById('myDebt').textContent = Utils.formatCurrency(finStatus.outstandingAmount);
+
+                // Calculate totals
+                let totalCollected = 0, totalPending = 0, activeCount = 0;
+                const memberDues = {};
+
+                allCollections.forEach(c => {
+                    if (c.status === 'active') activeCount++;
+                    c.assignedMembers?.forEach(m => {
+                        if (m.status === 'paid') {
+                            totalCollected += (m.amount || 0);
+                        } else {
+                            totalPending += (m.amount || 0);
+                            memberDues[m.userId] = (memberDues[m.userId] || 0) + (m.amount || 0);
+                        }
+                    });
+                });
+
+                document.getElementById('totalCollected').textContent = Utils.formatCurrency(totalCollected);
+                document.getElementById('pendingAmount').textContent = Utils.formatCurrency(totalPending);
+                document.getElementById('activeRequests').textContent = activeCount;
+
+                // Chart
+                new Chart(document.getElementById('collectionChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['Collected', 'Pending'],
+                        datasets: [{ data: [totalCollected, totalPending], backgroundColor: ['#10b981', '#f59e0b'], borderRadius: 8 }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { color: '#94a3b8' } }, x: { ticks: { color: '#94a3b8' } } } }
+                });
+
+                // Collections Table
+                const tbody = document.getElementById('collectionsTable');
+                if (allCollections.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">No collections found.</td></tr>';
+                } else {
+                    tbody.innerHTML = allCollections.slice(0, 10).map(c => {
+                        const total = c.assignedMembers?.length || 0;
+                        const paid = c.assignedMembers?.filter(m => m.status === 'paid').length || 0;
+                        const progress = total > 0 ? Math.round((paid / total) * 100) : 0;
+                        return `
+                            <tr style="border-bottom: 1px solid var(--bg-glass-border);">
+                                <td style="padding: 12px; font-weight: 500;">${c.title || 'Untitled'}</td>
+                                <td style="padding: 12px;">${Utils.formatCurrency(c.amount)}</td>
+                                <td style="padding: 12px;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <div style="flex: 1; height: 6px; background: var(--bg-glass-border); border-radius: 3px; overflow: hidden;">
+                                            <div style="width: ${progress}%; height: 100%; background: var(--success-500);"></div>
+                                        </div>
+                                        <span class="text-sm">${paid}/${total}</span>
+                                    </div>
+                                </td>
+                                <td style="padding: 12px;">
+                                    <button class="btn btn-ghost btn-sm" onclick="viewCollectionDetails('${c.id}')">View</button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+
+                // Members with Dues
+                const duesHtml = Object.entries(memberDues).slice(0, 10).map(([userId, amount]) => {
+                    const user = allUsers.find(u => u.id === userId);
+                    return `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid var(--bg-glass-border);">
+                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--danger-500); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.8rem;">${(user?.name || 'U').charAt(0)}</div>
+                                <span>${user?.name || 'Unknown'}</span>
+                            </div>
+                            <span class="text-danger font-bold">${Utils.formatCurrency(amount)}</span>
+                        </div>
+                    `;
+                }).join('');
+                document.getElementById('membersDues').innerHTML = duesHtml || '<p class="text-muted text-center py-4">No pending dues</p>';
+
+                // Recent Payments (using already filtered payments from above)
+                document.getElementById('recentPayments').innerHTML = payments.map(p => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid var(--bg-glass-border);">
+                        <div>
+                            <div style="font-weight: 500;">${p.data?.title || 'Payment'}</div>
+                            <div class="text-xs text-muted">${Utils.timeAgo(p.createdAt)}</div>
+                        </div>
+                        <span class="text-success font-bold">${Utils.formatCurrency(p.data?.amount)}</span>
+                    </div>
+                `).join('') || '<p class="text-muted text-center py-4">No recent payments</p>';
+
+            } catch (error) {
+                console.error('Finance error:', error);
+                Utils.showToast('Error loading finance data', 'error');
+            }
+        }
+
+        function showNewCollectionModal() {
+            Modal.form({
+                title: 'Create Collection Request',
+                fields: [
+                    { name: 'title', label: 'Title', placeholder: 'e.g., Monthly Subscription', required: true },
+                    { name: 'amount', label: 'Amount per Person (₹)', type: 'number', placeholder: '100', required: true },
+                    { name: 'description', label: 'Description', type: 'textarea', placeholder: 'Reason for collection...' }
+                ],
+                onSubmit: async (data) => {
+                    try {
+                        await Firestore.createCollectionRequest({
+                            title: data.title,
+                            amount: Number(data.amount),
+                            description: data.description,
+                            assignedTo: 'all'
+                        });
+                        Utils.showToast('Collection request created!', 'success');
+                        loadFinanceData(Auth.userData);
+                    } catch (error) {
+                        Utils.showToast('Error: ' + error.message, 'error');
+                    }
+                }
+            });
+        }
+
+        function showRecordPaymentModal() {
+            const userOptions = allUsers.map(u => ({ value: u.id, label: u.name || u.email }));
+            const collectionOptions = allCollections.filter(c => c.status === 'active').map(c => ({ value: c.id, label: c.title }));
+
+            Modal.form({
+                title: 'Record Payment',
+                fields: [
+                    { name: 'userId', label: 'Member', type: 'select', options: userOptions, required: true },
+                    { name: 'collectionId', label: 'Collection', type: 'select', options: collectionOptions, required: true }
+                ],
+                onSubmit: async (data) => {
+                    try {
+                        const collectionRef = db.collection('moneyCollections').doc(data.collectionId);
+                        const doc = await collectionRef.get();
+                        const collection = doc.data();
+
+                        const members = collection.assignedMembers.map(m => {
+                            if (m.userId === data.userId) {
+                                return { ...m, status: 'paid', paidAt: new Date() };
+                            }
+                            return m;
+                        });
+
+                        await collectionRef.update({ assignedMembers: members });
+
+                        // Log payment
+                        await db.collection('logs').add({
+                            type: 'payment',
+                            data: { title: collection.title, amount: collection.amount, userId: data.userId },
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            createdBy: Auth.userData?.uid
+                        });
+
+                        Utils.showToast('Payment recorded!', 'success');
+                        loadFinanceData(Auth.userData);
+                    } catch (error) {
+                        Utils.showToast('Error: ' + error.message, 'error');
+                    }
+                }
+            });
+        }
+
+        function viewCollectionDetails(collectionId) {
+            const collection = allCollections.find(c => c.id === collectionId);
+            if (!collection) return;
+
+            const membersHtml = collection.assignedMembers?.map(m => {
+                const user = allUsers.find(u => u.id === m.userId);
+                return `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid var(--bg-glass-border);">
+                        <span>${user?.name || m.userName || 'Unknown'}</span>
+                        <span class="${m.status === 'paid' ? 'text-success' : 'text-warning'}">${m.status === 'paid' ? '✓ Paid' : '⏳ Pending'}</span>
+                    </div>
+                `;
+            }).join('') || '<p class="text-muted">No members assigned</p>';
+
+            Modal.show({
+                title: collection.title,
+                content: `
+                    <p class="text-muted mb-lg">${collection.description || 'No description'}</p>
+                    <div style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem;">${Utils.formatCurrency(collection.amount)} per person</div>
+                    <h4 style="margin: 1rem 0 0.5rem;">Payment Status</h4>
+                    ${membersHtml}
+                `,
+                submitText: 'Close',
+                cancelText: ''
+            });
+        }
+
+        function downloadReport() {
+            Reports.generateMonthlyReport();
+        }
+
+        Router.initPage();
+    </script>
+</body>
+
+</html>

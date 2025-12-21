@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leader Dashboard | INFI X TECH</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <div id="sidebar-container"></div>
+        <div class="main-content">
+            <div id="header-container"></div>
+            <div class="page-content">
+                <div id="loadingState" class="text-center py-4">
+                    <div style="font-size: 2rem; margin-bottom: 1rem;">⏳</div>
+                    <p class="text-muted">Loading command center...</p>
+                </div>
+
+                <div id="dashboardContent" style="display: none;">
+                    <!-- Banner -->
+                    <div class="card mb-lg"
+                        style="background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white; border: none;">
+                        <div class="card-body"
+                            style="padding: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                            <div>
+                                <h1 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 0.25rem;">Team Command
+                                    Center 🎯</h1>
+                                <p style="opacity: 0.9; font-size: 0.9rem;">Manage your team, finances, and operations.
+                                </p>
+                            </div>
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                <button class="btn" style="background: rgba(255,255,255,0.2); color: white;"
+                                    onclick="showAssignTaskModal()">+ Assign Task</button>
+                                <button class="btn" style="background: rgba(255,255,255,0.2); color: white;"
+                                    onclick="showCollectionModal()">💰 Collect</button>
+                                <button class="btn" style="background: rgba(255,255,255,0.2); color: white;"
+                                    onclick="showAnnouncementModal()">📢 Announce</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stats Row -->
+                    <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; margin-bottom: 1.5rem;"
+                        id="statsRow">
+                        <div class="card">
+                            <div class="stat-card">
+                                <div class="stat-icon primary">👥</div>
+                                <div>
+                                    <div class="stat-value" id="memberCount">-</div>
+                                    <div class="stat-label">Members</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="stat-card">
+                                <div class="stat-icon success">🏆</div>
+                                <div>
+                                    <div class="stat-value" id="eventCount">-</div>
+                                    <div class="stat-label">Events</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="stat-card">
+                                <div class="stat-icon warning">✅</div>
+                                <div>
+                                    <div class="stat-value" id="taskProgress">-</div>
+                                    <div class="stat-label">Tasks Done</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="stat-card">
+                                <div class="stat-icon info">🏦</div>
+                                <div>
+                                    <div class="stat-value" id="balance">₹0</div>
+                                    <div class="stat-label">Collected</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card" id="myDebtCard">
+                            <div class="stat-card">
+                                <div class="stat-icon danger">💸</div>
+                                <div>
+                                    <div class="stat-value" id="myDebt">-</div>
+                                    <div class="stat-label">My Debt</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Main Grid -->
+                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+                        <!-- Left Column -->
+                        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                            <!-- Charts Row -->
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3 class="card-title">Task Distribution</h3>
+                                    </div>
+                                    <div class="card-body" style="height: 200px;"><canvas id="taskChart"></canvas></div>
+                                </div>
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3 class="card-title">Collection Status</h3>
+                                    </div>
+                                    <div class="card-body" style="height: 200px;"><canvas id="collectionChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Recent Activity -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Recent Activity</h3>
+                                    <span class="text-muted text-sm">Last 10 actions</span>
+                                </div>
+                                <div class="card-body" id="activityFeed" style="max-height: 300px; overflow-y: auto;">
+                                    <p class="text-muted text-center py-4">Loading...</p>
+                                </div>
+                            </div>
+
+                            <!-- Pending Approvals -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Pending Actions</h3>
+                                </div>
+                                <div class="card-body" id="pendingActions">
+                                    <p class="text-muted text-center py-4">No pending actions</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column -->
+                        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                            <!-- Quick Actions -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Quick Actions</h3>
+                                </div>
+                                <div class="card-body" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                    <button class="btn btn-secondary" style="justify-content: flex-start;"
+                                        onclick="showAssignTaskModal()">✅ Assign Task</button>
+                                    <button class="btn btn-secondary" style="justify-content: flex-start;"
+                                        onclick="showCollectionModal()">💰 Create Collection</button>
+                                    <button class="btn btn-secondary" style="justify-content: flex-start;"
+                                        onclick="showEventModal()">🏆 Add Event</button>
+                                    <a href="admin/members.html" class="btn btn-secondary"
+                                        style="justify-content: flex-start;">👥 Manage Members</a>
+                                    <a href="admin/transactions.html" class="btn btn-secondary"
+                                        style="justify-content: flex-start;">💳 Transaction Manager</a>
+                                    <a href="logs/task-logs.html" class="btn btn-secondary"
+                                        style="justify-content: flex-start;">📋 View All Tasks</a>
+                                    <button class="btn btn-primary" onclick="downloadReport()">📄 Download
+                                        Report</button>
+                                </div>
+                            </div>
+
+                            <!-- Team Preview -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Team Overview</h3><a href="admin/members.html"
+                                        class="btn btn-ghost btn-sm">View All</a>
+                                </div>
+                                <div class="card-body" id="teamPreview" style="max-height: 250px; overflow-y: auto;">
+                                    <p class="text-muted text-center py-4">Loading...</p>
+                                </div>
+                            </div>
+
+                            <!-- Upcoming -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Upcoming</h3>
+                                </div>
+                                <div class="card-body" id="upcomingEvents">
+                                    <p class="text-muted text-center py-4">No upcoming events</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/firestore.js"></script>
+    <script src="../js/components.js"></script>
+    <script src="../js/reports.js"></script>
+    <script src="../js/router.js"></script>
+    <script src="../js/app.js"></script>
+
+    <script>
+        window.addEventListener('userDataLoaded', async (e) => {
+            const user = e.detail;
+
+            // Check leader access
+            if (!user.roles?.includes('leader')) {
+                Utils.showToast('Access denied. Leader role required.', 'error');
+                setTimeout(() => window.location.href = `dashboard-${Auth.getPrimaryRole(user.roles)}.html`, 1500);
+                return;
+            }
+
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('dashboardContent').style.display = 'block';
+
+            await loadDashboardData(user);
+        });
+
+        async function loadDashboardData(user) {
+            try {
+                // Parallel data loading - using simple queries to avoid composite indexes
+                const [stats, finStatus, usersSnap, logsSnap, eventsSnap, collectionsSnap] = await Promise.all([
+                    Firestore.getDashboardStats(),
+                    Firestore.getUserFinancialStatus(user.uid),
+                    db.collection('users').get(),
+                    db.collection('logs').get(),
+                    db.collection('events').get(),
+                    db.collection('moneyCollections').get()
+                ]);
+
+                // Stats
+                document.getElementById('memberCount').textContent = stats.activeMembers || 0;
+                document.getElementById('eventCount').textContent = stats.activeEvents || 0;
+                document.getElementById('taskProgress').textContent = `${stats.completed || 0}/${stats.total || 0}`;
+
+                // Filter active collections client-side
+                const activeCollections = collectionsSnap.docs
+                    .map(d => ({ id: d.id, ...d.data() }))
+                    .filter(c => c.status === 'active');
+
+                // Calculate total collected
+                let totalCollected = 0;
+                let totalPending = 0;
+                activeCollections.forEach(c => {
+                    c.assignedMembers?.forEach(m => {
+                        if (m.status === 'paid') totalCollected += (m.amount || 0);
+                        else totalPending += (m.amount || 0);
+                    });
+                });
+                document.getElementById('balance').textContent = Utils.formatCurrency(totalCollected);
+                document.getElementById('myDebt').textContent = Utils.formatCurrency(finStatus.outstandingAmount);
+
+                if (finStatus.outstandingAmount === 0) {
+                    document.getElementById('myDebtCard').querySelector('.stat-icon').className = 'stat-icon success';
+                    document.getElementById('myDebtCard').querySelector('.stat-label').textContent = 'All Clear!';
+                }
+
+                // Task Chart
+                new Chart(document.getElementById('taskChart'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Completed', 'Pending'],
+                        datasets: [{ data: [stats.completed || 0, (stats.total || 0) - (stats.completed || 0)], backgroundColor: ['#10b981', '#f59e0b'], borderWidth: 0 }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', boxWidth: 12 } } } }
+                });
+
+                // Collection Chart
+                new Chart(document.getElementById('collectionChart'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Collected', 'Pending'],
+                        datasets: [{ data: [totalCollected, totalPending], backgroundColor: ['#6366f1', '#ef4444'], borderWidth: 0 }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', boxWidth: 12 } } } }
+                });
+
+                // Team Preview
+                const users = usersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                document.getElementById('teamPreview').innerHTML = users.slice(0, 8).map(u => `
+                    <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0; border-bottom: 1px solid var(--bg-glass-border);">
+                        <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--primary-500); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.85rem; font-weight: 600;">${(u.name || 'U').charAt(0)}</div>
+                        <div style="flex: 1; overflow: hidden;">
+                            <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${u.name || 'User'}</div>
+                            <div class="text-xs text-muted">${(u.roles || ['member'])[0]}</div>
+                        </div>
+                        <span style="font-size: 0.7rem; color: ${u.isActive !== false ? 'var(--success-500)' : 'var(--text-muted)'};">●</span>
+                    </div>
+                `).join('') || '<p class="text-muted text-center">No members</p>';
+
+                // Activity Feed - sorted client-side
+                const logs = logsSnap.docs
+                    .map(d => ({ id: d.id, ...d.data() }))
+                    .sort((a, b) => {
+                        const aDate = a.createdAt?.toDate?.() || new Date(0);
+                        const bDate = b.createdAt?.toDate?.() || new Date(0);
+                        return bDate - aDate;
+                    })
+                    .slice(0, 10);
+                document.getElementById('activityFeed').innerHTML = logs.map(log => {
+                    const icons = { task: '✅', payment: '💰', event: '🏆', collection: '📝' };
+                    return `
+                        <div style="display: flex; gap: 1rem; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid var(--bg-glass-border);">
+                            <span style="font-size: 1.1rem;">${icons[log.type] || '📋'}</span>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 500;">${log.data?.title || log.type}</div>
+                                <div class="text-xs text-muted">${Utils.timeAgo(log.createdAt)}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('') || '<p class="text-muted text-center py-4">No recent activity</p>';
+
+                // Upcoming Events
+                const events = eventsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                document.getElementById('upcomingEvents').innerHTML = events.map(ev => `
+                    <div style="padding: 0.75rem 0; border-bottom: 1px solid var(--bg-glass-border);">
+                        <div style="font-weight: 500;">${ev.name || 'Event'}</div>
+                        <div class="text-xs text-muted">${ev.date ? Utils.formatDate(ev.date) : 'TBD'}</div>
+                    </div>
+                `).join('') || '<p class="text-muted text-center py-4">No upcoming events</p>';
+
+            } catch (error) {
+                console.error('Dashboard error:', error);
+                Utils.showToast('Error loading dashboard data', 'error');
+            }
+        }
+
+        // ===== MODAL FUNCTIONS =====
+        function showAssignTaskModal() {
+            Modal.form({
+                title: 'Assign New Task',
+                fields: [
+                    { name: 'title', label: 'Task Title', placeholder: 'Enter task title...', required: true },
+                    { name: 'description', label: 'Description', type: 'textarea', placeholder: 'Task details...' },
+                    {
+                        name: 'priority', label: 'Priority', type: 'select', options: [
+                            { value: 'low', label: 'Low' },
+                            { value: 'medium', label: 'Medium' },
+                            { value: 'high', label: 'High' }
+                        ]
+                    },
+                    {
+                        name: 'assignee', label: 'Assign To', type: 'select', options: [
+                            { value: 'all', label: 'All Members' }
+                        ]
+                    }
+                ],
+                onSubmit: async (data) => {
+                    try {
+                        await Firestore.assignTask(data);
+                        Utils.showToast('Task assigned successfully!', 'success');
+                        loadDashboardData(Auth.userData);
+                    } catch (error) {
+                        Utils.showToast('Error assigning task: ' + error.message, 'error');
+                    }
+                }
+            });
+        }
+
+        function showCollectionModal() {
+            Modal.form({
+                title: 'Create Collection Request',
+                fields: [
+                    { name: 'title', label: 'Title / Reason', placeholder: 'e.g., Monthly Subscription', required: true },
+                    { name: 'amount', label: 'Amount per Person (₹)', type: 'number', placeholder: '100', required: true },
+                    { name: 'description', label: 'Description', type: 'textarea', placeholder: 'Additional details...' }
+                ],
+                onSubmit: async (data) => {
+                    try {
+                        await Firestore.createCollectionRequest({
+                            title: data.title,
+                            amount: Number(data.amount),
+                            description: data.description,
+                            assignedTo: 'all'
+                        });
+                        Utils.showToast('Collection request sent to all members!', 'success');
+                        loadDashboardData(Auth.userData);
+                    } catch (error) {
+                        Utils.showToast('Error: ' + error.message, 'error');
+                    }
+                }
+            });
+        }
+
+        function showEventModal() {
+            Modal.form({
+                title: 'Add New Event',
+                fields: [
+                    { name: 'name', label: 'Event Name', placeholder: 'e.g., Hackathon 2024', required: true },
+                    { name: 'description', label: 'Description', type: 'textarea', placeholder: 'Event details...' },
+                    { name: 'date', label: 'Date', type: 'date' },
+                    {
+                        name: 'status', label: 'Status', type: 'select', options: [
+                            { value: 'upcoming', label: 'Upcoming' },
+                            { value: 'active', label: 'Active' },
+                            { value: 'completed', label: 'Completed' }
+                        ]
+                    }
+                ],
+                onSubmit: async (data) => {
+                    try {
+                        await db.collection('events').add({
+                            ...data,
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            createdBy: Auth.userData?.uid
+                        });
+                        Utils.showToast('Event created!', 'success');
+                        loadDashboardData(Auth.userData);
+                    } catch (error) {
+                        Utils.showToast('Error: ' + error.message, 'error');
+                    }
+                }
+            });
+        }
+
+        function showAnnouncementModal() {
+            Modal.form({
+                title: 'Send Announcement',
+                fields: [
+                    { name: 'title', label: 'Title', placeholder: 'Announcement title...', required: true },
+                    { name: 'message', label: 'Message', type: 'textarea', placeholder: 'Write your announcement...', required: true }
+                ],
+                onSubmit: async (data) => {
+                    try {
+                        await db.collection('announcements').add({
+                            ...data,
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            createdBy: Auth.userData?.uid,
+                            read: []
+                        });
+                        Utils.showToast('Announcement sent!', 'success');
+                    } catch (error) {
+                        Utils.showToast('Error: ' + error.message, 'error');
+                    }
+                }
+            });
+        }
+
+        function downloadReport() {
+            Reports.generateMonthlyReport();
+        }
+
+        Router.initPage();
+    </script>
+</body>
+
+</html>

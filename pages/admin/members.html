@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Member Management | INFI X TECH</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/styles.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <div id="sidebar-container"></div>
+        <div class="main-content">
+            <div id="header-container"></div>
+            <div class="page-content">
+                <div id="loadingState" class="text-center py-4">
+                    <div style="font-size: 2rem; margin-bottom: 1rem;">⏳</div>
+                    <p class="text-muted">Loading members...</p>
+                </div>
+
+                <div id="pageContent" style="display: none;">
+                    <!-- Banner -->
+                    <div class="card mb-lg"
+                        style="background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; border: none;">
+                        <div class="card-body"
+                            style="padding: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                            <div>
+                                <h1 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 0.25rem;">Member
+                                    Management 👥</h1>
+                                <p style="opacity: 0.9; font-size: 0.9rem;">Add, edit, and manage team members with
+                                    detailed profiles.</p>
+                            </div>
+                            <button class="btn" style="background: rgba(255,255,255,0.2); color: white;"
+                                onclick="showAddMemberModal()">+ Add New Member</button>
+                        </div>
+                    </div>
+
+                    <!-- Stats Row -->
+                    <div
+                        style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+                        <div class="card">
+                            <div class="stat-card">
+                                <div class="stat-icon primary">👥</div>
+                                <div>
+                                    <div class="stat-value" id="totalMembers">0</div>
+                                    <div class="stat-label">Total Members</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="stat-card">
+                                <div class="stat-icon success">✓</div>
+                                <div>
+                                    <div class="stat-value" id="activeMembers">0</div>
+                                    <div class="stat-label">Active</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="stat-card">
+                                <div class="stat-icon warning">⏸</div>
+                                <div>
+                                    <div class="stat-value" id="inactiveMembers">0</div>
+                                    <div class="stat-label">Inactive</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="stat-card">
+                                <div class="stat-icon danger">💸</div>
+                                <div>
+                                    <div class="stat-value" id="totalDues">₹0</div>
+                                    <div class="stat-label">Total Dues</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filters & Search -->
+                    <div class="card mb-lg">
+                        <div class="card-body" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
+                            <input type="text" class="form-input" placeholder="🔍 Search by name, email, or phone..."
+                                id="searchInput" style="flex: 1; min-width: 250px;">
+                            <select class="form-input" id="filterRole" style="width: 150px;">
+                                <option value="">All Roles</option>
+                                <option value="leader">Leader</option>
+                                <option value="finance">Finance</option>
+                                <option value="tech">Tech</option>
+                                <option value="presenter">Presenter</option>
+                                <option value="designer">Designer</option>
+                                <option value="member">Member</option>
+                            </select>
+                            <select class="form-input" id="filterStatus" style="width: 150px;">
+                                <option value="">All Status</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                            <button class="btn btn-secondary" onclick="exportMembers()">📄 Export</button>
+                        </div>
+                    </div>
+
+                    <!-- Members Table -->
+                    <div class="card">
+                        <div class="card-body" style="overflow-x: auto;">
+                            <table style="width: 100%; border-collapse: collapse; min-width: 800px;">
+                                <thead>
+                                    <tr style="text-align: left; border-bottom: 2px solid var(--bg-glass-border);">
+                                        <th style="padding: 12px; color: var(--text-muted); font-weight: 500;">Member
+                                        </th>
+                                        <th style="padding: 12px; color: var(--text-muted); font-weight: 500;">Contact
+                                        </th>
+                                        <th style="padding: 12px; color: var(--text-muted); font-weight: 500;">Roles
+                                        </th>
+                                        <th style="padding: 12px; color: var(--text-muted); font-weight: 500;">Balance
+                                        </th>
+                                        <th style="padding: 12px; color: var(--text-muted); font-weight: 500;">Status
+                                        </th>
+                                        <th style="padding: 12px; color: var(--text-muted); font-weight: 500;">Actions
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody id="membersTable">
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted py-4">Loading...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="../../js/firebase-config.js"></script>
+    <script src="../../js/utils.js"></script>
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/firestore.js"></script>
+    <script src="../../js/components.js"></script>
+    <script src="../../js/router.js"></script>
+    <script src="../../js/app.js"></script>
+
+    <script>
+        let allMembers = [];
+        let memberBalances = {};
+
+        window.addEventListener('userDataLoaded', async (e) => {
+            const user = e.detail;
+
+            // Check leader/finance access
+            if (!user.roles?.includes('leader') && !user.roles?.includes('finance')) {
+                Utils.showToast('Access denied. Leader or Finance role required.', 'error');
+                setTimeout(() => window.history.back(), 1500);
+                return;
+            }
+
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('pageContent').style.display = 'block';
+
+            await loadMembers();
+        });
+
+        async function loadMembers() {
+            try {
+                // Load members and calculate balances
+                const [usersSnap, collectionsSnap] = await Promise.all([
+                    db.collection('users').get(),
+                    db.collection('moneyCollections').get()
+                ]);
+
+                allMembers = usersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+                // Calculate balances
+                memberBalances = {};
+                collectionsSnap.forEach(doc => {
+                    const c = doc.data();
+                    c.assignedMembers?.forEach(m => {
+                        if (!memberBalances[m.userId]) memberBalances[m.userId] = 0;
+                        if (m.status !== 'paid') {
+                            memberBalances[m.userId] += (m.amount || 0);
+                        }
+                    });
+                });
+
+                // Stats
+                const active = allMembers.filter(m => m.isActive !== false).length;
+                const inactive = allMembers.length - active;
+                const totalDues = Object.values(memberBalances).reduce((sum, v) => sum + v, 0);
+
+                document.getElementById('totalMembers').textContent = allMembers.length;
+                document.getElementById('activeMembers').textContent = active;
+                document.getElementById('inactiveMembers').textContent = inactive;
+                document.getElementById('totalDues').textContent = Utils.formatCurrency(totalDues);
+
+                renderMembers(allMembers);
+            } catch (error) {
+                console.error('Error:', error);
+                Utils.showToast('Error loading members', 'error');
+            }
+        }
+
+        function renderMembers(members) {
+            const tbody = document.getElementById('membersTable');
+
+            if (members.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No members found.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = members.map(m => {
+                const balance = memberBalances[m.id] || 0;
+                const isActive = m.isActive !== false;
+                return `
+                    <tr style="border-bottom: 1px solid var(--bg-glass-border);">
+                        <td style="padding: 12px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-500), var(--primary-600)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">
+                                    ${(m.name || 'U').charAt(0).toUpperCase()}
+                                </div>
+                                <div>
+                                    <div style="font-weight: 600;">${m.name || 'Unknown'}</div>
+                                    <div class="text-xs text-muted">${m.uid ? 'ID: ' + m.uid.substring(0, 8) + '...' : ''}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="padding: 12px;">
+                            <div>${m.email || '-'}</div>
+                            <div class="text-sm text-muted">${m.phone || '-'}</div>
+                        </td>
+                        <td style="padding: 12px;">
+                            <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+                                ${(m.roles || ['member']).map(r => `<span style="padding: 2px 8px; border-radius: 20px; font-size: 0.7rem; background: var(--bg-glass); border: 1px solid var(--bg-glass-border); text-transform: capitalize;">${r}</span>`).join('')}
+                            </div>
+                        </td>
+                        <td style="padding: 12px;">
+                            <span class="${balance > 0 ? 'text-danger font-bold' : 'text-success'}">${balance > 0 ? Utils.formatCurrency(balance) + ' due' : '✓ Clear'}</span>
+                        </td>
+                        <td style="padding: 12px;">
+                            <span style="padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; background: ${isActive ? 'var(--success-500)' : 'var(--text-muted)'}; color: white;">
+                                ${isActive ? 'Active' : 'Inactive'}
+                            </span>
+                        </td>
+                        <td style="padding: 12px;">
+                            <div style="display: flex; gap: 4px;">
+                                <button class="btn btn-ghost btn-sm" onclick="viewMember('${m.id}')" title="View">👁</button>
+                                <button class="btn btn-ghost btn-sm" onclick="editMember('${m.id}')" title="Edit">✏️</button>
+                                <button class="btn btn-ghost btn-sm" onclick="toggleMemberStatus('${m.id}', ${!isActive})" title="${isActive ? 'Deactivate' : 'Activate'}">
+                                    ${isActive ? '⏸' : '▶'}
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Filters
+        document.getElementById('searchInput').addEventListener('input', applyFilters);
+        document.getElementById('filterRole').addEventListener('change', applyFilters);
+        document.getElementById('filterStatus').addEventListener('change', applyFilters);
+
+        function applyFilters() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const role = document.getElementById('filterRole').value;
+            const status = document.getElementById('filterStatus').value;
+
+            let filtered = allMembers;
+
+            if (query) {
+                filtered = filtered.filter(m =>
+                    (m.name || '').toLowerCase().includes(query) ||
+                    (m.email || '').toLowerCase().includes(query) ||
+                    (m.phone || '').includes(query)
+                );
+            }
+
+            if (role) {
+                filtered = filtered.filter(m => (m.roles || []).includes(role));
+            }
+
+            if (status) {
+                if (status === 'active') {
+                    filtered = filtered.filter(m => m.isActive !== false);
+                } else {
+                    filtered = filtered.filter(m => m.isActive === false);
+                }
+            }
+
+            renderMembers(filtered);
+        }
+
+        // Add Member Modal
+        function showAddMemberModal() {
+            Modal.show({
+                title: 'Add New Member',
+                size: 'large',
+                content: `
+                    <form id="addMemberForm">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div class="form-group">
+                                <label class="form-label">Full Name *</label>
+                                <input type="text" class="form-input" id="memberName" required placeholder="John Doe">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Email *</label>
+                                <input type="email" class="form-input" id="memberEmail" required placeholder="john@example.com">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Phone</label>
+                                <input type="tel" class="form-input" id="memberPhone" placeholder="+91 98765 43210">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Password *</label>
+                                <input type="password" class="form-input" id="memberPassword" required placeholder="Min 6 characters">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group" style="margin-top: 1rem;">
+                            <label class="form-label">Roles (select multiple)</label>
+                            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem;">
+                                <label style="display: flex; align-items: center; gap: 4px; padding: 8px 12px; background: var(--bg-glass); border-radius: 8px; cursor: pointer;">
+                                    <input type="checkbox" name="roles" value="member" checked> Member
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 4px; padding: 8px 12px; background: var(--bg-glass); border-radius: 8px; cursor: pointer;">
+                                    <input type="checkbox" name="roles" value="leader"> Leader
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 4px; padding: 8px 12px; background: var(--bg-glass); border-radius: 8px; cursor: pointer;">
+                                    <input type="checkbox" name="roles" value="finance"> Finance
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 4px; padding: 8px 12px; background: var(--bg-glass); border-radius: 8px; cursor: pointer;">
+                                    <input type="checkbox" name="roles" value="tech"> Tech
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 4px; padding: 8px 12px; background: var(--bg-glass); border-radius: 8px; cursor: pointer;">
+                                    <input type="checkbox" name="roles" value="presenter"> Presenter
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 4px; padding: 8px 12px; background: var(--bg-glass); border-radius: 8px; cursor: pointer;">
+                                    <input type="checkbox" name="roles" value="designer"> Designer
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 1rem;">
+                            <label class="form-label">Notes</label>
+                            <textarea class="form-input" id="memberNotes" rows="2" placeholder="Any additional notes..."></textarea>
+                        </div>
+                    </form>
+                `,
+                submitText: 'Create Member',
+                onSubmit: createMember
+            });
+        }
+
+        async function createMember() {
+            const name = document.getElementById('memberName').value.trim();
+            const email = document.getElementById('memberEmail').value.trim();
+            const phone = document.getElementById('memberPhone').value.trim();
+            const password = document.getElementById('memberPassword').value;
+            const notes = document.getElementById('memberNotes').value.trim();
+
+            const roleInputs = document.querySelectorAll('input[name="roles"]:checked');
+            const roles = Array.from(roleInputs).map(i => i.value);
+
+            if (!name || !email || !password) {
+                Utils.showToast('Please fill all required fields', 'error');
+                return;
+            }
+
+            if (password.length < 6) {
+                Utils.showToast('Password must be at least 6 characters', 'error');
+                return;
+            }
+
+            try {
+                // Create Firebase Auth user
+                const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
+                const uid = userCredential.user.uid;
+
+                // Create Firestore document
+                await db.collection('users').doc(uid).set({
+                    uid,
+                    name,
+                    email,
+                    phone,
+                    roles: roles.length > 0 ? roles : ['member'],
+                    notes,
+                    isActive: true,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    createdBy: Auth.userData?.uid
+                });
+
+                // Log the action
+                await db.collection('logs').add({
+                    type: 'member_added',
+                    data: { name, email, roles },
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    createdBy: Auth.userData?.uid
+                });
+
+                // Sign back in as current user (creating new user signs us in as them)
+                // Note: In production, you'd use Admin SDK on backend
+                Utils.showToast('Member created successfully! They can now login.', 'success');
+                Modal.close();
+                loadMembers();
+            } catch (error) {
+                Utils.showToast('Error: ' + error.message, 'error');
+            }
+        }
+
+        function viewMember(memberId) {
+            const member = allMembers.find(m => m.id === memberId);
+            if (!member) return;
+
+            const balance = memberBalances[memberId] || 0;
+
+            Modal.show({
+                title: member.name || 'Member Profile',
+                content: `
+                    <div style="text-align: center; padding: 1rem 0;">
+                        <div style="width: 80px; height: 80px; margin: 0 auto 1rem; border-radius: 50%; background: linear-gradient(135deg, var(--primary-500), var(--primary-600)); display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem; font-weight: 700;">
+                            ${(member.name || 'U').charAt(0).toUpperCase()}
+                        </div>
+                        <h2 style="font-size: 1.5rem; font-weight: 700;">${member.name || 'Unknown'}</h2>
+                        <p class="text-muted">${member.email || ''}</p>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.5rem 0;">
+                        <div style="padding: 1rem; background: var(--bg-glass); border-radius: 12px;">
+                            <div class="text-muted text-sm">Phone</div>
+                            <div style="font-weight: 500;">${member.phone || 'Not set'}</div>
+                        </div>
+                        <div style="padding: 1rem; background: var(--bg-glass); border-radius: 12px;">
+                            <div class="text-muted text-sm">Status</div>
+                            <div style="font-weight: 500; color: ${member.isActive !== false ? 'var(--success-500)' : 'var(--text-muted)'};">
+                                ${member.isActive !== false ? 'Active' : 'Inactive'}
+                            </div>
+                        </div>
+                        <div style="padding: 1rem; background: var(--bg-glass); border-radius: 12px;">
+                            <div class="text-muted text-sm">Balance</div>
+                            <div style="font-weight: 500; color: ${balance > 0 ? 'var(--danger-500)' : 'var(--success-500)'};">
+                                ${balance > 0 ? Utils.formatCurrency(balance) + ' due' : '✓ All clear'}
+                            </div>
+                        </div>
+                        <div style="padding: 1rem; background: var(--bg-glass); border-radius: 12px;">
+                            <div class="text-muted text-sm">Joined</div>
+                            <div style="font-weight: 500;">${member.createdAt ? Utils.formatDate(member.createdAt) : 'Unknown'}</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 1rem;">
+                        <div class="text-muted text-sm mb-2">Roles</div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+                            ${(member.roles || ['member']).map(r => `<span style="padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; background: var(--primary-500); color: white; text-transform: capitalize;">${r}</span>`).join('')}
+                        </div>
+                    </div>
+
+                    ${member.notes ? `<div style="margin-top: 1rem; padding: 1rem; background: var(--bg-glass); border-radius: 8px;"><div class="text-muted text-sm">Notes</div><p>${member.notes}</p></div>` : ''}
+                `,
+                submitText: 'Close',
+                cancelText: ''
+            });
+        }
+
+        function editMember(memberId) {
+            const member = allMembers.find(m => m.id === memberId);
+            if (!member) return;
+
+            Modal.show({
+                title: 'Edit Member',
+                size: 'large',
+                content: `
+                    <form id="editMemberForm">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div class="form-group">
+                                <label class="form-label">Full Name *</label>
+                                <input type="text" class="form-input" id="editName" value="${member.name || ''}" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-input" value="${member.email || ''}" disabled style="opacity: 0.6;">
+                                <div class="text-xs text-muted">Email cannot be changed</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Phone</label>
+                                <input type="tel" class="form-input" id="editPhone" value="${member.phone || ''}">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group" style="margin-top: 1rem;">
+                            <label class="form-label">Roles</label>
+                            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem;">
+                                ${['member', 'leader', 'finance', 'tech', 'presenter', 'designer'].map(role => `
+                                    <label style="display: flex; align-items: center; gap: 4px; padding: 8px 12px; background: var(--bg-glass); border-radius: 8px; cursor: pointer;">
+                                        <input type="checkbox" name="editRoles" value="${role}" ${(member.roles || []).includes(role) ? 'checked' : ''}> ${role.charAt(0).toUpperCase() + role.slice(1)}
+                                    </label>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 1rem;">
+                            <label class="form-label">Notes</label>
+                            <textarea class="form-input" id="editNotes" rows="2">${member.notes || ''}</textarea>
+                        </div>
+                    </form>
+                `,
+                submitText: 'Save Changes',
+                onSubmit: () => updateMember(memberId)
+            });
+        }
+
+        async function updateMember(memberId) {
+            const name = document.getElementById('editName').value.trim();
+            const phone = document.getElementById('editPhone').value.trim();
+            const notes = document.getElementById('editNotes').value.trim();
+
+            const roleInputs = document.querySelectorAll('input[name="editRoles"]:checked');
+            const roles = Array.from(roleInputs).map(i => i.value);
+
+            if (!name) {
+                Utils.showToast('Name is required', 'error');
+                return;
+            }
+
+            try {
+                await db.collection('users').doc(memberId).update({
+                    name,
+                    phone,
+                    notes,
+                    roles: roles.length > 0 ? roles : ['member'],
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                Utils.showToast('Member updated successfully!', 'success');
+                Modal.close();
+                loadMembers();
+            } catch (error) {
+                Utils.showToast('Error: ' + error.message, 'error');
+            }
+        }
+
+        async function toggleMemberStatus(memberId, newStatus) {
+            const member = allMembers.find(m => m.id === memberId);
+            const action = newStatus ? 'activate' : 'deactivate';
+
+            Modal.confirm(`Are you sure you want to ${action} ${member?.name || 'this member'}?`, async () => {
+                try {
+                    await db.collection('users').doc(memberId).update({ isActive: newStatus });
+                    Utils.showToast(`Member ${action}d successfully!`, 'success');
+                    loadMembers();
+                } catch (error) {
+                    Utils.showToast('Error: ' + error.message, 'error');
+                }
+            });
+        }
+
+        function exportMembers() {
+            const csv = [
+                ['Name', 'Email', 'Phone', 'Roles', 'Status', 'Balance'].join(','),
+                ...allMembers.map(m => [
+                    m.name || '',
+                    m.email || '',
+                    m.phone || '',
+                    (m.roles || []).join(';'),
+                    m.isActive !== false ? 'Active' : 'Inactive',
+                    memberBalances[m.id] || 0
+                ].join(','))
+            ].join('\n');
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'members_export.csv';
+            a.click();
+            Utils.showToast('Export downloaded!', 'success');
+        }
+
+        Router.initPage();
+    </script>
+</body>
+
+</html>

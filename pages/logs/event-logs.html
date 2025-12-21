@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Logs | INFI X TECH</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/styles.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <div id="sidebar-container"></div>
+        <div class="main-content">
+            <div id="header-container"></div>
+            <div class="page-content">
+                <div id="loadingState" class="text-center py-4">
+                    <div style="font-size: 2rem; margin-bottom: 1rem;">⏳</div>
+                    <p class="text-muted">Loading events...</p>
+                </div>
+
+                <div id="pageContent" style="display: none;">
+                    <!-- Banner -->
+                    <div class="card mb-lg"
+                        style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none;">
+                        <div class="card-body" style="padding: 2rem;">
+                            <h1 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 0.25rem;">Event Logs 🏆</h1>
+                            <p style="opacity: 0.9; font-size: 0.9rem;">View all team events and their activity logs.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Filter -->
+                    <div class="card mb-lg">
+                        <div class="card-body" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
+                            <input type="text" class="form-input" placeholder="🔍 Search events..." id="searchInput"
+                                style="flex: 1; min-width: 200px;">
+                            <select class="form-input" id="filterStatus" style="width: 150px;">
+                                <option value="">All Status</option>
+                                <option value="upcoming">Upcoming</option>
+                                <option value="active">Active</option>
+                                <option value="completed">Completed</option>
+                            </select>
+                            <a href="../admin/events.html" class="btn btn-primary" id="manageBtn"
+                                style="display: none;">⚙️ Manage Events</a>
+                        </div>
+                    </div>
+
+                    <!-- Events List -->
+                    <div id="eventsList">
+                        <p class="text-muted text-center py-4">Loading...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="../../js/firebase-config.js"></script>
+    <script src="../../js/utils.js"></script>
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/firestore.js"></script>
+    <script src="../../js/components.js"></script>
+    <script src="../../js/router.js"></script>
+    <script src="../../js/app.js"></script>
+
+    <script>
+        let allEvents = [];
+        let isLeader = false;
+
+        window.addEventListener('userDataLoaded', async (e) => {
+            const user = e.detail;
+            isLeader = user.roles?.includes('leader') || user.roles?.includes('finance');
+
+            if (isLeader) {
+                document.getElementById('manageBtn').style.display = 'inline-flex';
+            }
+
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('pageContent').style.display = 'block';
+
+            await loadEvents();
+        });
+
+        async function loadEvents() {
+            try {
+                const eventsSnap = await db.collection('events').orderBy('createdAt', 'desc').get();
+                allEvents = eventsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                renderEvents(allEvents);
+            } catch (error) {
+                console.error('Error:', error);
+                Utils.showToast('Error loading events', 'error');
+            }
+        }
+
+        function renderEvents(events) {
+            const container = document.getElementById('eventsList');
+
+            if (events.length === 0) {
+                container.innerHTML = `
+                    <div class="card">
+                        <div class="card-body text-center py-4">
+                            <div style="font-size: 3rem; margin-bottom: 1rem;">🏆</div>
+                            <h3>No Events Yet</h3>
+                            <p class="text-muted">Events will appear here once created.</p>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = events.map(event => {
+                const statusColors = {
+                    upcoming: 'var(--warning-500)',
+                    active: 'var(--info-500)',
+                    completed: 'var(--success-500)',
+                    cancelled: 'var(--text-muted)'
+                };
+                const statusColor = statusColors[event.status] || 'var(--primary-500)';
+                const logs = event.logs || [];
+                const participantCount = event.participants?.length || 0;
+
+                return `
+                    <div class="card mb-lg" style="cursor: pointer;" onclick="viewEvent('${event.id}')">
+                        <div class="card-body">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                                <div>
+                                    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                        <span style="padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; background: ${statusColor}; color: white; text-transform: capitalize;">
+                                            ${event.status || 'upcoming'}
+                                        </span>
+                                        <span style="padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; background: var(--bg-glass); text-transform: capitalize;">
+                                            ${event.type || 'Event'}
+                                        </span>
+                                    </div>
+                                    <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.25rem;">${event.name || 'Untitled Event'}</h3>
+                                    <p class="text-muted text-sm">${event.description || 'No description'}</p>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 0.9rem; color: var(--text-muted);">📅 ${event.startDate ? Utils.formatDate(event.startDate) : 'TBD'}</div>
+                                    <div style="font-size: 0.9rem; color: var(--text-muted);">📍 ${event.venue || 'TBD'}</div>
+                                </div>
+                            </div>
+
+                            <div style="display: flex; gap: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--bg-glass-border);">
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <span>👥</span>
+                                    <span>${participantCount} Participants</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <span>📝</span>
+                                    <span>${logs.length} Logs</span>
+                                </div>
+                                ${event.budget ? `
+                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <span>💰</span>
+                                        <span>${Utils.formatCurrency(event.budget)}</span>
+                                    </div>
+                                ` : ''}
+                            </div>
+
+                            ${logs.length > 0 ? `
+                                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--bg-glass-border);">
+                                    <div class="text-muted text-sm mb-2">Recent Activity:</div>
+                                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                        ${logs.slice(0, 3).map(log => `
+                                            <div style="display: flex; gap: 0.75rem; padding: 0.5rem; background: var(--bg-glass); border-radius: 8px;">
+                                                <span>${getLogIcon(log.type)}</span>
+                                                <div style="flex: 1;">
+                                                    <div style="font-weight: 500;">${log.title || log.type}</div>
+                                                    <div class="text-xs text-muted">${log.createdAt ? Utils.timeAgo(log.createdAt) : ''} by ${log.createdByName || 'Unknown'}</div>
+                                                </div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getLogIcon(type) {
+            const icons = { update: '📝', milestone: '🏆', issue: '⚠️', decision: '✅', meeting: '🤝', note: '📌' };
+            return icons[type] || '📋';
+        }
+
+        function viewEvent(eventId) {
+            window.location.href = `../admin/event-details.html?id=${eventId}`;
+        }
+
+        // Filters
+        document.getElementById('searchInput').addEventListener('input', applyFilters);
+        document.getElementById('filterStatus').addEventListener('change', applyFilters);
+
+        function applyFilters() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const status = document.getElementById('filterStatus').value;
+
+            let filtered = allEvents;
+
+            if (query) {
+                filtered = filtered.filter(e =>
+                    (e.name || '').toLowerCase().includes(query) ||
+                    (e.description || '').toLowerCase().includes(query)
+                );
+            }
+
+            if (status) filtered = filtered.filter(e => e.status === status);
+
+            renderEvents(filtered);
+        }
+
+        Router.initPage();
+    </script>
+</body>
+
+</html>

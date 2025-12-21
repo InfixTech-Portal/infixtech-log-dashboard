@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | INFI X TECH Log Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/tsparticles-slim@2.0.6/tsparticles.slim.bundle.min.js"></script>
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        #particles-js {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+        }
+
+        .login-container {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 440px;
+            padding: 1rem;
+        }
+
+        .login-card {
+            background: rgba(30, 41, 59, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 3rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .brand-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .brand-logo {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .brand-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 0.25rem;
+        }
+
+        .brand-subtitle {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .form-input {
+            margin-bottom: 1.25rem;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .login-footer {
+            margin-top: 2rem;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid var(--danger-500);
+            color: var(--danger-500);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="particles-js"></div>
+
+    <div class="login-container">
+        <div class="login-card">
+            <div class="brand-header">
+                <div class="brand-logo">🌌</div>
+                <h1 class="brand-title">LOG PORTAL</h1>
+                <p class="brand-subtitle">INFI X TECH Team Management System</p>
+            </div>
+
+            <div id="errorBox" class="error-message"></div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" class="form-input" id="email" required placeholder="your@email.com"
+                        autocomplete="email">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-input" id="password" required placeholder="••••••••"
+                        autocomplete="current-password">
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-login" id="loginBtn">
+                    Sign In
+                </button>
+            </form>
+
+            <div class="login-footer">
+                <p>Secure authentication powered by Firebase</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <script src="js/firebase-config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/router.js"></script>
+
+    <script>
+        // Particles
+        tsParticles.load("particles-js", {
+            background: { color: { value: "transparent" } },
+            fpsLimit: 60,
+            particles: {
+                color: { value: "#6366f1" },
+                links: { color: "#6366f1", distance: 150, enable: true, opacity: 0.2, width: 1 },
+                move: { enable: true, speed: 1, direction: "none", outModes: "out" },
+                number: { density: { enable: true, area: 800 }, value: 50 },
+                opacity: { value: 0.4 },
+                shape: { type: "circle" },
+                size: { value: { min: 1, max: 3 } }
+            }
+        });
+
+        // Check if already logged in
+        firebase.auth().onAuthStateChanged(async (user) => {
+            if (user) {
+                // Already logged in - redirect
+                const doc = await db.collection('users').doc(user.uid).get();
+                const userData = doc.exists ? doc.data() : { roles: ['member'] };
+                const role = Auth.getPrimaryRole(userData.roles);
+                window.location.href = `pages/dashboard-${role}.html`;
+            }
+        });
+
+        // Login Form
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('loginBtn');
+            const errorBox = document.getElementById('errorBox');
+
+            // Reset error
+            errorBox.style.display = 'none';
+
+            // Validation
+            if (!email || !password) {
+                errorBox.textContent = 'Please enter both email and password.';
+                errorBox.style.display = 'block';
+                return;
+            }
+
+            try {
+                btn.textContent = 'Signing in...';
+                btn.disabled = true;
+
+                const result = await Auth.login(email, password);
+
+                if (result.success) {
+                    btn.textContent = 'Redirecting...';
+                    Utils.showToast(`Welcome back, ${result.user.name || 'User'}!`, 'success');
+
+                    // Redirect based on role
+                    const role = Auth.getPrimaryRole(result.user.roles);
+                    setTimeout(() => {
+                        window.location.href = `pages/dashboard-${role}.html`;
+                    }, 500);
+                } else {
+                    throw new Error(result.error);
+                }
+
+            } catch (error) {
+                errorBox.textContent = error.message || 'Login failed. Please try again.';
+                errorBox.style.display = 'block';
+                btn.textContent = 'Sign In';
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+
+</html>

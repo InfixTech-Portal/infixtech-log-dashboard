@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Logs | INFI X TECH</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/styles.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <div id="sidebar-container"></div>
+        <div class="main-content">
+            <div id="header-container"></div>
+            <div class="page-content">
+                <div id="loadingState" class="text-center py-4">
+                    <div style="font-size: 2rem; margin-bottom: 1rem;">⏳</div>
+                    <p class="text-muted">Loading tasks...</p>
+                </div>
+
+                <div id="pageContent" style="display: none;">
+                    <!-- Banner -->
+                    <div class="card mb-lg"
+                        style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none;">
+                        <div class="card-body"
+                            style="padding: 2.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                            <div>
+                                <h1 style="font-size: 2rem; font-weight: 700;">Task Management ✅</h1>
+                                <p style="opacity: 0.9;">Track and manage all team tasks.</p>
+                            </div>
+                            <button class="btn" style="background: rgba(255,255,255,0.2); color: white;"
+                                onclick="createTask()" id="addTaskBtn">+ New Task</button>
+                        </div>
+                    </div>
+
+                    <!-- Filters -->
+                    <div class="card mb-lg">
+                        <div class="card-body" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                            <select class="form-input" id="filterStatus" style="max-width: 150px;">
+                                <option value="">All Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="completed">Completed</option>
+                            </select>
+                            <select class="form-input" id="filterPriority" style="max-width: 150px;">
+                                <option value="">All Priority</option>
+                                <option value="high">High</option>
+                                <option value="medium">Medium</option>
+                                <option value="low">Low</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Tasks List -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">All Tasks</h3>
+                            <span class="text-muted" id="taskCount">0 tasks</span>
+                        </div>
+                        <div class="card-body" id="taskList">
+                            <p class="text-muted text-center py-4">Loading...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="../../js/firebase-config.js"></script>
+    <script src="../../js/utils.js"></script>
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/firestore.js"></script>
+    <script src="../../js/router.js"></script>
+    <script src="../../js/app.js"></script>
+
+    <script>
+        let allTasks = [];
+
+        window.addEventListener('userDataLoaded', async (e) => {
+            const user = e.detail;
+
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('pageContent').style.display = 'block';
+
+            // Hide add button for non-leaders
+            if (!user.roles?.includes('leader')) {
+                document.getElementById('addTaskBtn').style.display = 'none';
+            }
+
+            loadTasks();
+        });
+
+        async function loadTasks() {
+            try {
+                // Fetch all logs and filter client-side to avoid composite index requirements
+                const snapshot = await db.collection('logs').get();
+
+                allTasks = snapshot.docs
+                    .map(d => ({ id: d.id, ...d.data() }))
+                    .filter(log => log.type === 'task')
+                    .sort((a, b) => {
+                        const aDate = a.createdAt?.toDate?.() || new Date(0);
+                        const bDate = b.createdAt?.toDate?.() || new Date(0);
+                        return bDate - aDate;
+                    })
+                    .slice(0, 100);
+
+                renderTasks(allTasks);
+            } catch (error) {
+                console.error('Error loading tasks:', error);
+                document.getElementById('taskList').innerHTML = '<p class="text-danger text-center py-4">Error loading tasks.</p>';
+            }
+        }
+
+        function renderTasks(tasks) {
+            document.getElementById('taskCount').textContent = `${tasks.length} tasks`;
+            const list = document.getElementById('taskList');
+
+            if (tasks.length === 0) {
+                list.innerHTML = '<p class="text-muted text-center py-4">No tasks found.</p>';
+                return;
+            }
+
+            list.innerHTML = tasks.map(t => {
+                const data = t.data || {};
+                const priority = data.priority || 'medium';
+                const status = data.status || 'pending';
+                const priorityColors = { high: 'var(--danger-500)', medium: 'var(--warning-500)', low: 'var(--success-500)' };
+
+                return `
+                    <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; border-bottom: 1px solid var(--bg-glass-border); border-left: 4px solid ${priorityColors[priority]};">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600;">${data.title || 'Untitled'}</div>
+                            <div class="text-muted text-sm">Assigned to: ${data.assigneeName || 'Unknown'} • ${Utils.timeAgo(t.createdAt)}</div>
+                        </div>
+                        <span class="${status === 'completed' ? 'text-success' : 'text-warning'}" style="font-weight: 500; text-transform: capitalize;">${status}</span>
+                        <button class="btn btn-secondary btn-sm" onclick="toggleStatus('${t.id}', '${status}')">${status === 'completed' ? 'Reopen' : 'Complete'}</button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Filters
+        document.getElementById('filterStatus').addEventListener('change', applyFilters);
+        document.getElementById('filterPriority').addEventListener('change', applyFilters);
+
+        function applyFilters() {
+            const status = document.getElementById('filterStatus').value;
+            const priority = document.getElementById('filterPriority').value;
+            let filtered = allTasks;
+            if (status) filtered = filtered.filter(t => t.data?.status === status);
+            if (priority) filtered = filtered.filter(t => t.data?.priority === priority);
+            renderTasks(filtered);
+        }
+
+        async function toggleStatus(taskId, currentStatus) {
+            const newStatus = currentStatus === 'completed' ? 'pending' : 'completed';
+            await db.collection('logs').doc(taskId).update({
+                'data.status': newStatus,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            Utils.showToast(`Task marked as ${newStatus}`, 'success');
+            loadTasks();
+        }
+
+        function createTask() {
+            const title = prompt('Task Title:');
+            if (!title) return;
+            Firestore.assignTask({ title, priority: 'medium', assignee: 'all', description: 'Created from Task Logs' })
+                .then(() => { Utils.showToast('Task created!', 'success'); loadTasks(); });
+        }
+
+        Router.initPage();
+    </script>
+</body>
+
+</html>

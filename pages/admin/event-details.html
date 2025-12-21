@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Details | INFI X TECH</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/styles.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <div id="sidebar-container"></div>
+        <div class="main-content">
+            <div id="header-container"></div>
+            <div class="page-content">
+                <div id="loadingState" class="text-center py-4">
+                    <div style="font-size: 2rem; margin-bottom: 1rem;">⏳</div>
+                    <p class="text-muted">Loading event details...</p>
+                </div>
+
+                <div id="pageContent" style="display: none;">
+                    <!-- Back Button -->
+                    <div style="margin-bottom: 1rem;">
+                        <a href="events.html" class="btn btn-ghost">← Back to Events</a>
+                    </div>
+
+                    <!-- Event Header -->
+                    <div class="card mb-lg" id="eventHeader">
+                        <!-- Populated by JS -->
+                    </div>
+
+                    <!-- Tabs -->
+                    <div class="card mb-lg">
+                        <div class="card-body" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                            <button class="btn btn-primary" id="tabOverview" onclick="showTab('overview')">📊
+                                Overview</button>
+                            <button class="btn btn-secondary" id="tabLogs" onclick="showTab('logs')">📝 Event
+                                Logs</button>
+                            <button class="btn btn-secondary" id="tabParticipants" onclick="showTab('participants')">👥
+                                Participants</button>
+                            <button class="btn btn-secondary" id="tabExpenses" onclick="showTab('expenses')">💰
+                                Expenses</button>
+                            <button class="btn btn-secondary" id="tabTasks" onclick="showTab('tasks')">✅ Tasks</button>
+                        </div>
+                    </div>
+
+                    <!-- Tab Content -->
+                    <div id="tabContent">
+                        <!-- Content populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="../../js/firebase-config.js"></script>
+    <script src="../../js/utils.js"></script>
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/firestore.js"></script>
+    <script src="../../js/components.js"></script>
+    <script src="../../js/router.js"></script>
+    <script src="../../js/app.js"></script>
+
+    <script>
+        let eventData = null;
+        let eventId = null;
+        let allMembers = [];
+        let isLeader = false;
+        let currentTab = 'overview';
+
+        window.addEventListener('userDataLoaded', async (e) => {
+            const user = e.detail;
+            isLeader = user.roles?.includes('leader') || user.roles?.includes('finance');
+
+            // Get event ID from URL
+            const params = new URLSearchParams(window.location.search);
+            eventId = params.get('id');
+
+            if (!eventId) {
+                Utils.showToast('Event not found', 'error');
+                setTimeout(() => window.location.href = 'events.html', 1500);
+                return;
+            }
+
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('pageContent').style.display = 'block';
+
+            await loadEventDetails();
+        });
+
+        async function loadEventDetails() {
+            try {
+                const [eventDoc, usersSnap] = await Promise.all([
+                    db.collection('events').doc(eventId).get(),
+                    db.collection('users').get()
+                ]);
+
+                if (!eventDoc.exists) {
+                    Utils.showToast('Event not found', 'error');
+                    setTimeout(() => window.location.href = 'events.html', 1500);
+                    return;
+                }
+
+                eventData = { id: eventDoc.id, ...eventDoc.data() };
+                allMembers = usersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+                renderEventHeader();
+                showTab('overview');
+            } catch (error) {
+                console.error('Error:', error);
+                Utils.showToast('Error loading event', 'error');
+            }
+        }
+
+        function renderEventHeader() {
+            const statusColors = {
+                upcoming: 'var(--warning-500)',
+                active: 'var(--info-500)',
+                completed: 'var(--success-500)',
+                cancelled: 'var(--text-muted)'
+            };
+            const statusColor = statusColors[eventData.status] || 'var(--primary-500)';
+
+            document.getElementById('eventHeader').innerHTML = `
+                <div class="card-body" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), transparent);">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+                        <div style="flex: 1;">
+                            <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                <span style="padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; background: ${statusColor}; color: white; text-transform: capitalize;">
+                                    ${eventData.status || 'upcoming'}
+                                </span>
+                                <span style="padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; background: var(--bg-glass); text-transform: capitalize;">
+                                    ${eventData.type || 'Event'}
+                                </span>
+                            </div>
+                            <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">${eventData.name || 'Untitled Event'}</h1>
+                            <p class="text-muted">${eventData.description || 'No description provided.'}</p>
+                        </div>
+                        ${isLeader ? `
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button class="btn btn-secondary" onclick="editEvent()">✏️ Edit</button>
+                                <button class="btn btn-secondary" onclick="changeStatus()">🔄 Status</button>
+                                <button class="btn btn-danger" onclick="deleteEvent()">🗑️ Delete</button>
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-top: 1.5rem;">
+                        <div style="padding: 1rem; background: var(--bg-glass); border-radius: 12px;">
+                            <div class="text-muted text-sm">📅 Start Date</div>
+                            <div style="font-weight: 600;">${eventData.startDate ? Utils.formatDate(eventData.startDate) : 'TBD'}</div>
+                        </div>
+                        <div style="padding: 1rem; background: var(--bg-glass); border-radius: 12px;">
+                            <div class="text-muted text-sm">📅 End Date</div>
+                            <div style="font-weight: 600;">${eventData.endDate ? Utils.formatDate(eventData.endDate) : 'TBD'}</div>
+                        </div>
+                        <div style="padding: 1rem; background: var(--bg-glass); border-radius: 12px;">
+                            <div class="text-muted text-sm">📍 Venue</div>
+                            <div style="font-weight: 600;">${eventData.venue || 'TBD'}</div>
+                        </div>
+                        <div style="padding: 1rem; background: var(--bg-glass); border-radius: 12px;">
+                            <div class="text-muted text-sm">💰 Budget</div>
+                            <div style="font-weight: 600;">${Utils.formatCurrency(eventData.budget || 0)}</div>
+                        </div>
+                        <div style="padding: 1rem; background: var(--bg-glass); border-radius: 12px;">
+                            <div class="text-muted text-sm">👥 Participants</div>
+                            <div style="font-weight: 600;">${eventData.participants?.length || 0}</div>
+                        </div>
+                        <div style="padding: 1rem; background: var(--bg-glass); border-radius: 12px;">
+                            <div class="text-muted text-sm">📝 Logs</div>
+                            <div style="font-weight: 600;">${eventData.logs?.length || 0}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showTab(tab) {
+            currentTab = tab;
+
+            // Update tab buttons
+            document.querySelectorAll('[id^="tab"]').forEach(btn => {
+                if (btn.id === 'tabContent') return;
+                btn.className = btn.id === 'tab' + tab.charAt(0).toUpperCase() + tab.slice(1) ? 'btn btn-primary' : 'btn btn-secondary';
+            });
+
+            const content = document.getElementById('tabContent');
+
+            switch (tab) {
+                case 'overview':
+                    renderOverview(content);
+                    break;
+                case 'logs':
+                    renderLogs(content);
+                    break;
+                case 'participants':
+                    renderParticipants(content);
+                    break;
+                case 'expenses':
+                    renderExpenses(content);
+                    break;
+                case 'tasks':
+                    renderTasks(content);
+                    break;
+            }
+        }
+
+        function renderOverview(container) {
+            const logs = eventData.logs || [];
+            const expenses = eventData.expenses || [];
+            const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+            const participants = eventData.participants || [];
+
+            container.innerHTML = `
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        <!-- Recent Logs -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Recent Activity</h3>
+                                <button class="btn btn-ghost btn-sm" onclick="showTab('logs')">View All →</button>
+                            </div>
+                            <div class="card-body">
+                                ${logs.slice(0, 5).map(log => `
+                                    <div style="display: flex; gap: 1rem; padding: 0.75rem 0; border-bottom: 1px solid var(--bg-glass-border);">
+                                        <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary-500); display: flex; align-items: center; justify-content: center; color: white;">
+                                            ${getLogIcon(log.type)}
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <div style="font-weight: 500;">${log.title || log.type}</div>
+                                            <div class="text-sm text-muted">${log.description || ''}</div>
+                                            <div class="text-xs text-muted">${log.createdAt ? Utils.timeAgo(log.createdAt) : ''} by ${log.createdByName || 'Unknown'}</div>
+                                        </div>
+                                    </div>
+                                `).join('') || '<p class="text-muted text-center py-4">No activity logs yet</p>'}
+                            </div>
+                        </div>
+
+                        <!-- Financial Summary -->
+                        <div class="card">
+                            <div class="card-header"><h3 class="card-title">Financial Summary</h3></div>
+                            <div class="card-body">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                                    <div style="padding: 1rem; background: rgba(16, 185, 129, 0.1); border-radius: 12px; text-align: center;">
+                                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--success-500);">${Utils.formatCurrency(eventData.budget || 0)}</div>
+                                        <div class="text-muted text-sm">Budget</div>
+                                    </div>
+                                    <div style="padding: 1rem; background: rgba(239, 68, 68, 0.1); border-radius: 12px; text-align: center;">
+                                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--danger-500);">${Utils.formatCurrency(totalExpenses)}</div>
+                                        <div class="text-muted text-sm">Spent</div>
+                                    </div>
+                                    <div style="padding: 1rem; background: rgba(99, 102, 241, 0.1); border-radius: 12px; text-align: center;">
+                                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary-500);">${Utils.formatCurrency((eventData.budget || 0) - totalExpenses)}</div>
+                                        <div class="text-muted text-sm">Remaining</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        <!-- Quick Actions -->
+                        <div class="card">
+                            <div class="card-header"><h3 class="card-title">Quick Actions</h3></div>
+                            <div class="card-body" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                <button class="btn btn-secondary" style="justify-content: flex-start;" onclick="showAddLogModal()">📝 Add Log Entry</button>
+                                <button class="btn btn-secondary" style="justify-content: flex-start;" onclick="showAddExpenseModal()">💰 Add Expense</button>
+                                <button class="btn btn-secondary" style="justify-content: flex-start;" onclick="showAddTaskModal()">✅ Add Task</button>
+                                <button class="btn btn-secondary" style="justify-content: flex-start;" onclick="showAddParticipantModal()">👥 Add Participant</button>
+                            </div>
+                        </div>
+
+                        <!-- Participants Preview -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Team</h3>
+                                <button class="btn btn-ghost btn-sm" onclick="showTab('participants')">View All</button>
+                            </div>
+                            <div class="card-body" style="max-height: 200px; overflow-y: auto;">
+                                ${participants.slice(0, 6).map(p => `
+                                    <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0; border-bottom: 1px solid var(--bg-glass-border);">
+                                        <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary-500); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.8rem;">
+                                            ${(p.userName || 'U').charAt(0)}
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <div style="font-weight: 500;">${p.userName || 'Unknown'}</div>
+                                            <div class="text-xs text-muted">${p.role || 'Participant'}</div>
+                                        </div>
+                                    </div>
+                                `).join('') || '<p class="text-muted text-center py-4">No participants yet</p>'}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderLogs(container) {
+            const logs = eventData.logs || [];
+
+            container.innerHTML = `
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Event Logs (${logs.length})</h3>
+                        <button class="btn btn-primary btn-sm" onclick="showAddLogModal()">+ Add Log</button>
+                    </div>
+                    <div class="card-body">
+                        ${logs.length === 0 ? '<p class="text-muted text-center py-4">No logs yet. Add your first log entry!</p>' : ''}
+                        <div style="display: flex; flex-direction: column; gap: 1rem;">
+                            ${logs.map((log, index) => `
+                                <div style="display: flex; gap: 1rem; padding: 1rem; background: var(--bg-glass); border-radius: 12px; border-left: 4px solid ${getLogColor(log.type)};">
+                                    <div style="width: 48px; height: 48px; border-radius: 12px; background: ${getLogColor(log.type)}; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem;">
+                                        ${getLogIcon(log.type)}
+                                    </div>
+                                    <div style="flex: 1;">
+                                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                            <div>
+                                                <div style="font-weight: 600; font-size: 1.1rem;">${log.title || log.type}</div>
+                                                <div class="text-sm text-muted">${log.type ? log.type.charAt(0).toUpperCase() + log.type.slice(1) : 'Log'}</div>
+                                            </div>
+                                            ${isLeader ? `<button class="btn btn-ghost btn-sm" onclick="deleteLog(${index})">🗑️</button>` : ''}
+                                        </div>
+                                        <p style="margin: 0.5rem 0;">${log.description || ''}</p>
+                                        <div class="text-xs text-muted">
+                                            ${log.createdAt ? Utils.formatDate(log.createdAt) : ''} by ${log.createdByName || 'Unknown'}
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderParticipants(container) {
+            const participants = eventData.participants || [];
+
+            container.innerHTML = `
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Participants (${participants.length})</h3>
+                        <button class="btn btn-primary btn-sm" onclick="showAddParticipantModal()">+ Add Participant</button>
+                    </div>
+                    <div class="card-body" style="overflow-x: auto;">
+                        ${participants.length === 0 ? '<p class="text-muted text-center py-4">No participants yet</p>' : `
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <thead>
+                                    <tr style="text-align: left; border-bottom: 2px solid var(--bg-glass-border);">
+                                        <th style="padding: 12px;">Member</th>
+                                        <th style="padding: 12px;">Role</th>
+                                        <th style="padding: 12px;">Added</th>
+                                        ${isLeader ? '<th style="padding: 12px;">Actions</th>' : ''}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${participants.map((p, index) => `
+                                        <tr style="border-bottom: 1px solid var(--bg-glass-border);">
+                                            <td style="padding: 12px;">
+                                                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                                    <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--primary-500); display: flex; align-items: center; justify-content: center; color: white;">
+                                                        ${(p.userName || 'U').charAt(0)}
+                                                    </div>
+                                                    <span style="font-weight: 500;">${p.userName || 'Unknown'}</span>
+                                                </div>
+                                            </td>
+                                            <td style="padding: 12px;">
+                                                <span style="padding: 4px 10px; background: var(--bg-glass); border-radius: 20px; font-size: 0.8rem; text-transform: capitalize;">
+                                                    ${p.role || 'Participant'}
+                                                </span>
+                                            </td>
+                                            <td style="padding: 12px;" class="text-muted">${p.addedAt ? Utils.formatDate(p.addedAt) : '-'}</td>
+                                            ${isLeader ? `
+                                                <td style="padding: 12px;">
+                                                    <button class="btn btn-ghost btn-sm" onclick="editParticipantRole(${index})">✏️</button>
+                                                    <button class="btn btn-ghost btn-sm" onclick="removeParticipant(${index})">🗑️</button>
+                                                </td>
+                                            ` : ''}
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        `}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderExpenses(container) {
+            const expenses = eventData.expenses || [];
+            const total = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+
+            container.innerHTML = `
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Expenses (${expenses.length})</h3>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <span class="text-muted">Total: <strong class="text-danger">${Utils.formatCurrency(total)}</strong></span>
+                            <button class="btn btn-primary btn-sm" onclick="showAddExpenseModal()">+ Add Expense</button>
+                        </div>
+                    </div>
+                    <div class="card-body" style="overflow-x: auto;">
+                        ${expenses.length === 0 ? '<p class="text-muted text-center py-4">No expenses recorded yet</p>' : `
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <thead>
+                                    <tr style="text-align: left; border-bottom: 2px solid var(--bg-glass-border);">
+                                        <th style="padding: 12px;">Description</th>
+                                        <th style="padding: 12px;">Category</th>
+                                        <th style="padding: 12px; text-align: right;">Amount</th>
+                                        <th style="padding: 12px;">Date</th>
+                                        ${isLeader ? '<th style="padding: 12px;">Actions</th>' : ''}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${expenses.map((e, index) => `
+                                        <tr style="border-bottom: 1px solid var(--bg-glass-border);">
+                                            <td style="padding: 12px; font-weight: 500;">${e.description || 'Expense'}</td>
+                                            <td style="padding: 12px;">
+                                                <span style="padding: 4px 10px; background: var(--bg-glass); border-radius: 20px; font-size: 0.8rem; text-transform: capitalize;">
+                                                    ${e.category || 'Other'}
+                                                </span>
+                                            </td>
+                                            <td style="padding: 12px; text-align: right; font-weight: 600; color: var(--danger-500);">${Utils.formatCurrency(e.amount)}</td>
+                                            <td style="padding: 12px;" class="text-muted">${e.date ? Utils.formatDate(e.date) : '-'}</td>
+                                            ${isLeader ? `
+                                                <td style="padding: 12px;">
+                                                    <button class="btn btn-ghost btn-sm" onclick="deleteExpense(${index})">🗑️</button>
+                                                </td>
+                                            ` : ''}
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        `}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderTasks(container) {
+            const tasks = eventData.tasks || [];
+
+            container.innerHTML = `
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Event Tasks (${tasks.length})</h3>
+                        <button class="btn btn-primary btn-sm" onclick="showAddTaskModal()">+ Add Task</button>
+                    </div>
+                    <div class="card-body">
+                        ${tasks.length === 0 ? '<p class="text-muted text-center py-4">No tasks yet. Add your first task!</p>' : ''}
+                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            ${tasks.map((t, index) => `
+                                <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--bg-glass); border-radius: 12px;">
+                                    <button onclick="toggleTaskStatus(${index})" style="width: 28px; height: 28px; border-radius: 8px; border: 2px solid ${t.status === 'completed' ? 'var(--success-500)' : 'var(--text-muted)'}; background: ${t.status === 'completed' ? 'var(--success-500)' : 'transparent'}; cursor: pointer; display: flex; align-items: center; justify-content: center; color: white;">
+                                        ${t.status === 'completed' ? '✓' : ''}
+                                    </button>
+                                    <div style="flex: 1;">
+                                        <div style="font-weight: 500; ${t.status === 'completed' ? 'text-decoration: line-through; opacity: 0.6;' : ''}">${t.title || 'Task'}</div>
+                                        ${t.assignee ? `<div class="text-xs text-muted">Assigned to: ${t.assigneeName || t.assignee}</div>` : ''}
+                                    </div>
+                                    ${isLeader ? `<button class="btn btn-ghost btn-sm" onclick="deleteTask(${index})">🗑️</button>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Helper functions
+        function getLogIcon(type) {
+            const icons = { update: '📝', milestone: '🏆', issue: '⚠️', decision: '✅', meeting: '🤝', note: '📌' };
+            return icons[type] || '📋';
+        }
+
+        function getLogColor(type) {
+            const colors = { update: 'var(--primary-500)', milestone: 'var(--warning-500)', issue: 'var(--danger-500)', decision: 'var(--success-500)', meeting: 'var(--info-500)', note: 'var(--text-muted)' };
+            return colors[type] || 'var(--primary-500)';
+        }
+
+        // Modal functions
+        function showAddLogModal() {
+            Modal.form({
+                title: 'Add Event Log',
+                fields: [
+                    {
+                        name: 'type', label: 'Log Type', type: 'select', options: [
+                            { value: 'update', label: 'Update' },
+                            { value: 'milestone', label: 'Milestone' },
+                            { value: 'decision', label: 'Decision' },
+                            { value: 'meeting', label: 'Meeting' },
+                            { value: 'issue', label: 'Issue' },
+                            { value: 'note', label: 'Note' }
+                        ]
+                    },
+                    { name: 'title', label: 'Title', placeholder: 'Brief title...', required: true },
+                    { name: 'description', label: 'Description', type: 'textarea', placeholder: 'Detailed log entry...' }
+                ],
+                onSubmit: async (data) => {
+                    const logs = eventData.logs || [];
+                    logs.unshift({
+                        ...data,
+                        createdAt: new Date(),
+                        createdBy: Auth.userData?.uid,
+                        createdByName: Auth.userData?.name
+                    });
+                    await db.collection('events').doc(eventId).update({ logs });
+                    eventData.logs = logs;
+                    Utils.showToast('Log added!', 'success');
+                    showTab('logs');
+                }
+            });
+        }
+
+        function showAddExpenseModal() {
+            Modal.form({
+                title: 'Add Expense',
+                fields: [
+                    { name: 'description', label: 'Description', placeholder: 'What was this expense for?', required: true },
+                    { name: 'amount', label: 'Amount (₹)', type: 'number', placeholder: '0', required: true },
+                    {
+                        name: 'category', label: 'Category', type: 'select', options: [
+                            { value: 'venue', label: 'Venue' },
+                            { value: 'food', label: 'Food & Refreshments' },
+                            { value: 'equipment', label: 'Equipment' },
+                            { value: 'travel', label: 'Travel' },
+                            { value: 'prizes', label: 'Prizes' },
+                            { value: 'marketing', label: 'Marketing' },
+                            { value: 'other', label: 'Other' }
+                        ]
+                    },
+                    { name: 'date', label: 'Date', type: 'date' }
+                ],
+                onSubmit: async (data) => {
+                    const expenses = eventData.expenses || [];
+                    expenses.push({
+                        ...data,
+                        amount: Number(data.amount),
+                        date: data.date ? new Date(data.date) : new Date(),
+                        createdBy: Auth.userData?.uid
+                    });
+                    await db.collection('events').doc(eventId).update({ expenses });
+                    eventData.expenses = expenses;
+                    Utils.showToast('Expense added!', 'success');
+                    renderEventHeader();
+                    showTab('expenses');
+                }
+            });
+        }
+
+        function showAddTaskModal() {
+            const participantOptions = (eventData.participants || []).map(p => ({ value: p.userId, label: p.userName }));
+
+            Modal.form({
+                title: 'Add Event Task',
+                fields: [
+                    { name: 'title', label: 'Task Title', placeholder: 'What needs to be done?', required: true },
+                    {
+                        name: 'assignee', label: 'Assign To', type: 'select', options: [
+                            { value: '', label: 'Unassigned' },
+                            ...participantOptions
+                        ]
+                    }
+                ],
+                onSubmit: async (data) => {
+                    const tasks = eventData.tasks || [];
+                    const assignee = (eventData.participants || []).find(p => p.userId === data.assignee);
+                    tasks.push({
+                        title: data.title,
+                        assignee: data.assignee,
+                        assigneeName: assignee?.userName,
+                        status: 'pending',
+                        createdAt: new Date()
+                    });
+                    await db.collection('events').doc(eventId).update({ tasks });
+                    eventData.tasks = tasks;
+                    Utils.showToast('Task added!', 'success');
+                    showTab('tasks');
+                }
+            });
+        }
+
+        function showAddParticipantModal() {
+            const existingIds = (eventData.participants || []).map(p => p.userId);
+            const available = allMembers.filter(m => !existingIds.includes(m.id) && m.isActive !== false);
+
+            if (available.length === 0) {
+                Utils.showToast('All members are already participants', 'info');
+                return;
+            }
+
+            const checkboxes = available.map(m => `
+                <label style="display: flex; align-items: center; gap: 4px; padding: 6px 10px; background: var(--bg-glass); border-radius: 8px; cursor: pointer;">
+                    <input type="checkbox" name="newParticipants" value="${m.id}" data-name="${m.name || m.email}">
+                    ${m.name || m.email}
+                </label>
+            `).join('');
+
+            Modal.show({
+                title: 'Add Participants',
+                content: `
+                    <div class="form-group">
+                        <label class="form-label">Role for new participants</label>
+                        <select class="form-input" id="participantRole">
+                            <option value="participant">Participant</option>
+                            <option value="organizer">Organizer</option>
+                            <option value="volunteer">Volunteer</option>
+                            <option value="speaker">Speaker</option>
+                            <option value="judge">Judge</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-top: 1rem;">
+                        <label class="form-label">Select Members</label>
+                        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; max-height: 200px; overflow-y: auto; padding: 0.5rem; background: var(--bg-glass); border-radius: 8px;">
+                            ${checkboxes}
+                        </div>
+                    </div>
+                `,
+                submitText: 'Add Selected',
+                onSubmit: async () => {
+                    const role = document.getElementById('participantRole').value;
+                    const inputs = document.querySelectorAll('input[name="newParticipants"]:checked');
+                    const participants = eventData.participants || [];
+
+                    inputs.forEach(input => {
+                        participants.push({
+                            userId: input.value,
+                            userName: input.dataset.name,
+                            role,
+                            addedAt: new Date()
+                        });
+                    });
+
+                    await db.collection('events').doc(eventId).update({ participants });
+                    eventData.participants = participants;
+                    Utils.showToast(`${inputs.length} participant(s) added!`, 'success');
+                    Modal.close();
+                    renderEventHeader();
+                    showTab('participants');
+                }
+            });
+        }
+
+        async function toggleTaskStatus(index) {
+            const tasks = eventData.tasks || [];
+            tasks[index].status = tasks[index].status === 'completed' ? 'pending' : 'completed';
+            await db.collection('events').doc(eventId).update({ tasks });
+            eventData.tasks = tasks;
+            showTab('tasks');
+        }
+
+        async function deleteLog(index) {
+            Modal.confirm('Delete this log entry?', async () => {
+                const logs = eventData.logs || [];
+                logs.splice(index, 1);
+                await db.collection('events').doc(eventId).update({ logs });
+                eventData.logs = logs;
+                Utils.showToast('Log deleted', 'success');
+                showTab('logs');
+            });
+        }
+
+        async function deleteExpense(index) {
+            Modal.confirm('Delete this expense?', async () => {
+                const expenses = eventData.expenses || [];
+                expenses.splice(index, 1);
+                await db.collection('events').doc(eventId).update({ expenses });
+                eventData.expenses = expenses;
+                Utils.showToast('Expense deleted', 'success');
+                renderEventHeader();
+                showTab('expenses');
+            });
+        }
+
+        async function deleteTask(index) {
+            Modal.confirm('Delete this task?', async () => {
+                const tasks = eventData.tasks || [];
+                tasks.splice(index, 1);
+                await db.collection('events').doc(eventId).update({ tasks });
+                eventData.tasks = tasks;
+                Utils.showToast('Task deleted', 'success');
+                showTab('tasks');
+            });
+        }
+
+        async function removeParticipant(index) {
+            Modal.confirm('Remove this participant?', async () => {
+                const participants = eventData.participants || [];
+                participants.splice(index, 1);
+                await db.collection('events').doc(eventId).update({ participants });
+                eventData.participants = participants;
+                Utils.showToast('Participant removed', 'success');
+                renderEventHeader();
+                showTab('participants');
+            });
+        }
+
+        function editParticipantRole(index) {
+            const p = eventData.participants[index];
+            Modal.form({
+                title: 'Edit Role',
+                fields: [
+                    {
+                        name: 'role', label: 'Role', type: 'select', options: [
+                            { value: 'participant', label: 'Participant' },
+                            { value: 'organizer', label: 'Organizer' },
+                            { value: 'volunteer', label: 'Volunteer' },
+                            { value: 'speaker', label: 'Speaker' },
+                            { value: 'judge', label: 'Judge' }
+                        ]
+                    }
+                ],
+                onSubmit: async (data) => {
+                    eventData.participants[index].role = data.role;
+                    await db.collection('events').doc(eventId).update({ participants: eventData.participants });
+                    Utils.showToast('Role updated!', 'success');
+                    showTab('participants');
+                }
+            });
+        }
+
+        function changeStatus() {
+            Modal.form({
+                title: 'Change Event Status',
+                fields: [
+                    {
+                        name: 'status', label: 'Status', type: 'select', options: [
+                            { value: 'upcoming', label: 'Upcoming' },
+                            { value: 'active', label: 'Active' },
+                            { value: 'completed', label: 'Completed' },
+                            { value: 'cancelled', label: 'Cancelled' }
+                        ]
+                    }
+                ],
+                onSubmit: async (data) => {
+                    await db.collection('events').doc(eventId).update({ status: data.status });
+                    eventData.status = data.status;
+                    Utils.showToast('Status updated!', 'success');
+                    renderEventHeader();
+                }
+            });
+        }
+
+        function editEvent() {
+            // Redirect to edit or show modal - simplified version
+            Utils.showToast('Navigate to Events page to edit', 'info');
+        }
+
+        function deleteEvent() {
+            Modal.confirm('Are you sure you want to delete this event? This action cannot be undone.', async () => {
+                await db.collection('events').doc(eventId).delete();
+                Utils.showToast('Event deleted!', 'success');
+                window.location.href = 'events.html';
+            });
+        }
+
+        Router.initPage();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,47 @@
+:root {
+    /* --- Cyber-Glass Palette --- */
+    /* Primary (Electric Indigo) */
+    --primary-50: #eef2ff;
+    --primary-500: #6366f1;
+    --primary-600: #4f46e5;
+    --primary-glow: rgba(99, 102, 241, 0.5);
+
+    /* Success (Neon Mint) */
+    --success-500: #10b981;
+    --success-glow: rgba(16, 185, 129, 0.5);
+
+    /* Warning (Amber Light) */
+    --warning-500: #f59e0b;
+
+    /* Danger (Laser Red) */
+    --danger-500: #ef4444;
+
+    /* Backgrounds */
+    --bg-body: #0f172a;
+    /* Deep Space */
+    --bg-glass: rgba(30, 41, 59, 0.65);
+    /* Translucent Slate */
+    --bg-glass-border: rgba(255, 255, 255, 0.08);
+
+    /* Text */
+    --text-main: #ffffff;
+    --text-muted: #94a3b8;
+
+    /* Dimensions */
+    --radius-xl: 16px;
+    --radius-2xl: 24px;
+
+    /* Effects */
+    --glass-blur: blur(20px);
+    --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.36);
+    --font-sans: 'Inter', system-ui, sans-serif;
+}
+
+[data-theme="light"] {
+    --bg-body: #f8fafc;
+    --bg-glass: rgba(255, 255, 255, 0.8);
+    --bg-glass-border: rgba(0, 0, 0, 0.05);
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+}

@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | INFI X TECH</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <div id="sidebar-container"></div>
+        <div class="main-content">
+            <div id="header-container"></div>
+            <div class="page-content">
+                <div id="loadingState" class="text-center py-4">
+                    <div style="font-size: 2rem; margin-bottom: 1rem;">⏳</div>
+                    <p class="text-muted">Loading your dashboard...</p>
+                </div>
+
+                <div id="dashboardContent" style="display: none;">
+                    <!-- Welcome Banner -->
+                    <div class="card mb-lg"
+                        style="background: linear-gradient(135deg, var(--primary-600), #8b5cf6); color: white; border: none;">
+                        <div class="card-body" style="padding: 2rem;">
+                            <h1 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 0.25rem;">
+                                Welcome back, <span id="userName">Member</span>! 👋
+                            </h1>
+                            <p style="opacity: 0.9; font-size: 0.9rem;">Here's your personal activity overview.</p>
+                        </div>
+                    </div>
+
+                    <!-- Stats Grid -->
+                    <div
+                        style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+                        <div class="card" id="financeCard">
+                            <div class="stat-card">
+                                <div class="stat-icon danger" id="financeIcon">💸</div>
+                                <div>
+                                    <div class="stat-value" id="outstandingAmount">₹0</div>
+                                    <div class="stat-label" id="financeLabel">Outstanding</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="stat-card">
+                                <div class="stat-icon success">✅</div>
+                                <div>
+                                    <div class="stat-value" id="tasksCompleted">0</div>
+                                    <div class="stat-label">Tasks Done</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="stat-card">
+                                <div class="stat-icon warning">⏳</div>
+                                <div>
+                                    <div class="stat-value" id="tasksPending">0</div>
+                                    <div class="stat-label">Pending</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="stat-card">
+                                <div class="stat-icon info">🏆</div>
+                                <div>
+                                    <div class="stat-value" id="eventsCount">0</div>
+                                    <div class="stat-label">Events</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Main Grid -->
+                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+                        <!-- Left Column -->
+                        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                            <!-- My Tasks -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">My Tasks</h3>
+                                    <a href="logs/task-logs.html" class="btn btn-ghost btn-sm">View All →</a>
+                                </div>
+                                <div class="card-body" id="tasksList">
+                                    <p class="text-muted text-center py-4">Loading tasks...</p>
+                                </div>
+                            </div>
+
+                            <!-- My Payment Requests -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Payment Requests</h3>
+                                    <a href="logs/payment-logs.html" class="btn btn-ghost btn-sm">View All →</a>
+                                </div>
+                                <div class="card-body" id="paymentsList">
+                                    <p class="text-muted text-center py-4">Loading...</p>
+                                </div>
+                            </div>
+
+                            <!-- Announcements -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Announcements</h3>
+                                </div>
+                                <div class="card-body" id="announcements">
+                                    <p class="text-muted text-center py-4">No announcements</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column -->
+                        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                            <!-- Quick Actions -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Quick Actions</h3>
+                                </div>
+                                <div class="card-body" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                    <a href="logs/payment-logs.html" class="btn btn-secondary"
+                                        style="justify-content: flex-start;">💰 View Payments</a>
+                                    <a href="logs/task-logs.html" class="btn btn-secondary"
+                                        style="justify-content: flex-start;">✅ View All Tasks</a>
+                                    <a href="logs/event-logs.html" class="btn btn-secondary"
+                                        style="justify-content: flex-start;">🏆 View Events</a>
+                                    <a href="profile.html" class="btn btn-secondary"
+                                        style="justify-content: flex-start;">👤 My Profile</a>
+                                </div>
+                            </div>
+
+                            <!-- Upcoming Events -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Upcoming Events</h3>
+                                </div>
+                                <div class="card-body" id="upcomingEvents">
+                                    <p class="text-muted text-center py-4">No upcoming events</p>
+                                </div>
+                            </div>
+
+                            <!-- Team Stats -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Team Stats</h3>
+                                </div>
+                                <div class="card-body" id="teamStats">
+                                    <div
+                                        style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--bg-glass-border);">
+                                        <span class="text-muted">Total Members</span>
+                                        <span id="totalMembers">-</span>
+                                    </div>
+                                    <div
+                                        style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--bg-glass-border);">
+                                        <span class="text-muted">Total Tasks</span>
+                                        <span id="totalTasks">-</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; padding: 0.5rem 0;">
+                                        <span class="text-muted">Completion Rate</span>
+                                        <span id="completionRate">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/firestore.js"></script>
+    <script src="../js/components.js"></script>
+    <script src="../js/router.js"></script>
+    <script src="../js/app.js"></script>
+
+    <script>
+        window.addEventListener('userDataLoaded', async (e) => {
+            const user = e.detail;
+
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('dashboardContent').style.display = 'block';
+            document.getElementById('userName').textContent = user.name || 'Member';
+
+            await loadMemberData(user);
+        });
+
+        async function loadMemberData(user) {
+            try {
+                // Fetch all data without complex queries to avoid composite index requirements
+                const [finStatus, logsSnap, eventsSnap, statsData, announcementsSnap] = await Promise.all([
+                    Firestore.getUserFinancialStatus(user.uid),
+                    db.collection('logs').get(),
+                    db.collection('events').get(),
+                    Firestore.getDashboardStats(),
+                    db.collection('announcements').get()
+                ]);
+
+                // Filter and sort tasks client-side
+                const myTasks = logsSnap.docs
+                    .map(d => ({ id: d.id, ...d.data() }))
+                    .filter(log => log.type === 'task' && log.data?.assignee === user.uid)
+                    .sort((a, b) => {
+                        const aDate = a.createdAt?.toDate?.() || new Date(0);
+                        const bDate = b.createdAt?.toDate?.() || new Date(0);
+                        return bDate - aDate;
+                    })
+                    .slice(0, 10);
+
+                // Filter events client-side
+                const upcomingEventsList = eventsSnap.docs
+                    .map(d => ({ id: d.id, ...d.data() }))
+                    .filter(e => e.status === 'upcoming')
+                    .slice(0, 5);
+
+                // Sort announcements client-side
+                const announcementsList = announcementsSnap.docs
+                    .map(d => ({ id: d.id, ...d.data() }))
+                    .sort((a, b) => {
+                        const aDate = a.createdAt?.toDate?.() || new Date(0);
+                        const bDate = b.createdAt?.toDate?.() || new Date(0);
+                        return bDate - aDate;
+                    })
+                    .slice(0, 5);
+
+                // Financial Status
+                document.getElementById('outstandingAmount').textContent = Utils.formatCurrency(finStatus.outstandingAmount);
+                if (finStatus.outstandingAmount === 0) {
+                    document.getElementById('financeIcon').className = 'stat-icon success';
+                    document.getElementById('financeIcon').textContent = '✅';
+                    document.getElementById('financeLabel').textContent = 'All Clear!';
+                }
+
+                // Payment Requests
+                if (finStatus.pendingRequests.length > 0) {
+                    document.getElementById('paymentsList').innerHTML = finStatus.pendingRequests.slice(0, 3).map(req => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid var(--bg-glass-border);">
+                            <div>
+                                <div style="font-weight: 500;">${req.title}</div>
+                                <div class="text-xs text-muted">Due: ${req.deadline ? Utils.formatDate(req.deadline) : 'ASAP'}</div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <span class="text-danger font-bold">${Utils.formatCurrency(req.amount)}</span>
+                                <a href="logs/payment-logs.html" class="btn btn-primary btn-sm">Pay</a>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    document.getElementById('paymentsList').innerHTML = '<p class="text-success text-center py-4">✅ No pending payments!</p>';
+                }
+
+                // Tasks
+                const completedCount = myTasks.filter(t => t.data?.status === 'completed').length;
+                const pendingCount = myTasks.length - completedCount;
+
+                document.getElementById('tasksCompleted').textContent = completedCount;
+                document.getElementById('tasksPending').textContent = pendingCount;
+
+                if (myTasks.length === 0) {
+                    document.getElementById('tasksList').innerHTML = '<p class="text-muted text-center py-4">No tasks assigned to you.</p>';
+                } else {
+                    document.getElementById('tasksList').innerHTML = myTasks.slice(0, 5).map(t => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid var(--bg-glass-border);">
+                            <div>
+                                <div style="font-weight: 500;">${t.data?.title || 'Untitled'}</div>
+                                <div class="text-xs text-muted">${Utils.timeAgo(t.createdAt)}</div>
+                            </div>
+                            <button class="btn btn-sm ${t.data?.status === 'completed' ? 'btn-secondary' : 'btn-primary'}" onclick="toggleTask('${t.id}', '${t.data?.status}')">
+                                ${t.data?.status === 'completed' ? '↩ Undo' : '✓ Done'}
+                            </button>
+                        </div>
+                    `).join('');
+                }
+
+                // Events
+                document.getElementById('eventsCount').textContent = upcomingEventsList.length;
+                document.getElementById('upcomingEvents').innerHTML = upcomingEventsList.map(ev => `
+                    <div style="padding: 0.75rem 0; border-bottom: 1px solid var(--bg-glass-border);">
+                        <div style="font-weight: 500;">${ev.name || 'Event'}</div>
+                        <div class="text-xs text-muted">${ev.startDate ? Utils.formatDate(ev.startDate) : 'Date TBD'}</div>
+                    </div>
+                `).join('') || '<p class="text-muted text-center py-4">No upcoming events</p>';
+
+                // Team Stats
+                document.getElementById('totalMembers').textContent = statsData.activeMembers || 0;
+                document.getElementById('totalTasks').textContent = statsData.total || 0;
+                document.getElementById('completionRate').textContent = statsData.total > 0 ? Math.round((statsData.completed / statsData.total) * 100) + '%' : '0%';
+
+                // Announcements
+                document.getElementById('announcements').innerHTML = announcementsList.map(a => `
+                    <div style="padding: 0.75rem 0; border-bottom: 1px solid var(--bg-glass-border);">
+                        <div style="font-weight: 600;">${a.title || 'Announcement'}</div>
+                        <div class="text-sm text-muted">${a.message || ''}</div>
+                        <div class="text-xs text-muted mt-1">${Utils.timeAgo(a.createdAt)}</div>
+                    </div>
+                `).join('') || '<p class="text-muted text-center py-4">No announcements</p>';
+
+            } catch (error) {
+                console.error('Dashboard error:', error);
+                Utils.showToast('Error loading dashboard data', 'error');
+            }
+        }
+
+        async function toggleTask(taskId, currentStatus) {
+            const newStatus = currentStatus === 'completed' ? 'pending' : 'completed';
+            await db.collection('logs').doc(taskId).update({
+                'data.status': newStatus,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            Utils.showToast(`Task marked as ${newStatus}`, 'success');
+            loadMemberData(Auth.userData);
+        }
+
+        Router.initPage();
+    </script>
+</body>
+
+</html>

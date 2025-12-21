@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile | INFI X TECH</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <div id="sidebar-container"></div>
+        <div class="main-content">
+            <div id="header-container"></div>
+            <div class="page-content">
+                <div id="loadingState" class="text-center py-4">
+                    <div style="font-size: 2rem; margin-bottom: 1rem;">⏳</div>
+                    <p class="text-muted">Loading profile...</p>
+                </div>
+
+                <div id="pageContent" style="display: none;">
+                    <!-- Profile Card -->
+                    <div class="card mb-lg">
+                        <div class="card-body" style="padding: 2.5rem;">
+                            <div style="display: flex; gap: 2rem; align-items: center; flex-wrap: wrap;">
+                                <div id="profileAvatar"
+                                    style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-500), var(--primary-600)); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: white; font-weight: 700;">
+                                    ?</div>
+                                <div>
+                                    <h1 style="font-size: 2rem; font-weight: 700;" id="profileName">Loading...</h1>
+                                    <p class="text-muted" id="profileEmail">-</p>
+                                    <div style="margin-top: 0.5rem;" id="profileRoles"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stats -->
+                    <div
+                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                        <div class="card">
+                            <div class="stat-card">
+                                <div class="stat-icon danger">💸</div>
+                                <div>
+                                    <div class="stat-value" id="outstanding">₹0</div>
+                                    <div class="stat-label">Outstanding</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="stat-card">
+                                <div class="stat-icon success">✅</div>
+                                <div>
+                                    <div class="stat-value" id="tasksCompleted">0</div>
+                                    <div class="stat-label">Tasks Done</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="stat-card">
+                                <div class="stat-icon info">📅</div>
+                                <div>
+                                    <div class="stat-value" id="memberSince">-</div>
+                                    <div class="stat-label">Member Since</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Account Settings</h3>
+                        </div>
+                        <div class="card-body" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                            <button class="btn btn-secondary" onclick="changePassword()">🔑 Reset Password</button>
+                            <button class="btn btn-danger" onclick="Auth.logout()">🚪 Logout</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/firestore.js"></script>
+    <script src="../js/router.js"></script>
+    <script src="../js/app.js"></script>
+
+    <script>
+        window.addEventListener('userDataLoaded', async (e) => {
+            const user = e.detail;
+
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('pageContent').style.display = 'block';
+
+            // Profile info
+            document.getElementById('profileAvatar').textContent = (user.name || 'U').charAt(0).toUpperCase();
+            document.getElementById('profileName').textContent = user.name || 'User';
+            document.getElementById('profileEmail').textContent = user.email || '';
+            document.getElementById('profileRoles').innerHTML = (user.roles || ['member']).map(r =>
+                `<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; background: var(--primary-500); color: white; font-size: 0.8rem; margin-right: 4px; text-transform: capitalize;">${r}</span>`
+            ).join('');
+
+            // Member since
+            if (user.createdAt) {
+                document.getElementById('memberSince').textContent = Utils.formatDate(user.createdAt);
+            }
+
+            // Financial status
+            const finStatus = await Firestore.getUserFinancialStatus(user.uid);
+            document.getElementById('outstanding').textContent = Utils.formatCurrency(finStatus.outstandingAmount);
+            if (finStatus.outstandingAmount === 0) {
+                document.getElementById('outstanding').className = 'stat-value text-success';
+            }
+
+            // Tasks completed
+            try {
+                const tasksSnap = await db.collection('logs')
+                    .where('type', '==', 'task')
+                    .where('data.assignee', '==', user.uid)
+                    .where('data.status', '==', 'completed')
+                    .get();
+                document.getElementById('tasksCompleted').textContent = tasksSnap.size;
+            } catch (error) {
+                console.error('Error loading tasks:', error);
+            }
+        });
+
+        function changePassword() {
+            const email = Auth.currentUser?.email;
+            if (!email) {
+                Utils.showToast('No email found', 'error');
+                return;
+            }
+
+            firebase.auth().sendPasswordResetEmail(email)
+                .then(() => Utils.showToast('Password reset email sent!', 'success'))
+                .catch(e => Utils.showToast(e.message, 'error'));
+        }
+
+        Router.initPage();
+    </script>
+</body>
+
+</html>

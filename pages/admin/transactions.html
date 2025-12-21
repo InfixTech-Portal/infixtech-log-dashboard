@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transactions | INFI X TECH</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/styles.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <div id="sidebar-container"></div>
+        <div class="main-content">
+            <div id="header-container"></div>
+            <div class="page-content">
+                <div id="loadingState" class="text-center py-4">
+                    <div style="font-size: 2rem; margin-bottom: 1rem;">⏳</div>
+                    <p class="text-muted">Loading transactions...</p>
+                </div>
+
+                <div id="pageContent" style="display: none;">
+                    <!-- Banner -->
+                    <div class="card mb-lg"
+                        style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none;">
+                        <div class="card-body"
+                            style="padding: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                            <div>
+                                <h1 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 0.25rem;">Transaction
+                                    Management 💰</h1>
+                                <p style="opacity: 0.9; font-size: 0.9rem;">Track all credits (income) and debits
+                                    (expenses) in one place.</p>
+                            </div>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button class="btn" style="background: rgba(255,255,255,0.2); color: white;"
+                                    onclick="showAddTransactionModal('credit')">+ Add Credit</button>
+                                <button class="btn" style="background: rgba(255,255,255,0.2); color: white;"
+                                    onclick="showAddTransactionModal('debit')">- Add Debit</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Balance Cards -->
+                    <div
+                        style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+                        <div class="card"
+                            style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), transparent); border-color: var(--success-500);">
+                            <div class="stat-card">
+                                <div class="stat-icon success">📈</div>
+                                <div>
+                                    <div class="stat-value" id="totalCredits">₹0</div>
+                                    <div class="stat-label">Total Credits</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card"
+                            style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), transparent); border-color: var(--danger-500);">
+                            <div class="stat-card">
+                                <div class="stat-icon danger">📉</div>
+                                <div>
+                                    <div class="stat-value" id="totalDebits">₹0</div>
+                                    <div class="stat-label">Total Debits</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card"
+                            style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), transparent); border-color: var(--primary-500);">
+                            <div class="stat-card">
+                                <div class="stat-icon primary">💰</div>
+                                <div>
+                                    <div class="stat-value" id="currentBalance">₹0</div>
+                                    <div class="stat-label">Net Balance</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="stat-card">
+                                <div class="stat-icon info">📋</div>
+                                <div>
+                                    <div class="stat-value" id="transactionCount">0</div>
+                                    <div class="stat-label">Transactions</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions Row -->
+                    <div class="card mb-lg">
+                        <div class="card-body" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
+                            <button class="btn btn-success" onclick="showAddTransactionModal('credit')">
+                                <span style="margin-right: 4px;">+</span> Record Credit (Money In)
+                            </button>
+                            <button class="btn btn-danger" onclick="showAddTransactionModal('debit')">
+                                <span style="margin-right: 4px;">-</span> Record Debit (Money Out)
+                            </button>
+                            <button class="btn btn-secondary" onclick="showCollectionModal()">
+                                📝 Create Collection
+                            </button>
+                            <button class="btn btn-secondary" onclick="exportTransactions()">
+                                📄 Export Report
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Filters -->
+                    <div class="card mb-lg">
+                        <div class="card-body" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
+                            <input type="text" class="form-input" placeholder="🔍 Search transactions..."
+                                id="searchInput" style="flex: 1; min-width: 200px;">
+                            <select class="form-input" id="filterType" style="width: 140px;">
+                                <option value="">All Types</option>
+                                <option value="credit">Credits</option>
+                                <option value="debit">Debits</option>
+                            </select>
+                            <select class="form-input" id="filterCategory" style="width: 160px;">
+                                <option value="">All Categories</option>
+                                <option value="collection">Collection</option>
+                                <option value="expense">Expense</option>
+                                <option value="donation">Donation</option>
+                                <option value="refund">Refund</option>
+                                <option value="other">Other</option>
+                            </select>
+                            <input type="date" class="form-input" id="filterDateFrom" style="width: 150px;"
+                                title="From Date">
+                            <input type="date" class="form-input" id="filterDateTo" style="width: 150px;"
+                                title="To Date">
+                        </div>
+                    </div>
+
+                    <!-- Transactions Table -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Transaction History</h3>
+                            <span class="text-muted" id="filterInfo">Showing all transactions</span>
+                        </div>
+                        <div class="card-body" style="overflow-x: auto;">
+                            <table style="width: 100%; border-collapse: collapse; min-width: 900px;">
+                                <thead>
+                                    <tr style="text-align: left; border-bottom: 2px solid var(--bg-glass-border);">
+                                        <th style="padding: 12px; color: var(--text-muted); font-weight: 500;">Date</th>
+                                        <th style="padding: 12px; color: var(--text-muted); font-weight: 500;">
+                                            Description</th>
+                                        <th style="padding: 12px; color: var(--text-muted); font-weight: 500;">Category
+                                        </th>
+                                        <th style="padding: 12px; color: var(--text-muted); font-weight: 500;">Member
+                                        </th>
+                                        <th
+                                            style="padding: 12px; color: var(--text-muted); font-weight: 500; text-align: right;">
+                                            Amount</th>
+                                        <th style="padding: 12px; color: var(--text-muted); font-weight: 500;">Actions
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody id="transactionsTable">
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted py-4">Loading...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="../../js/firebase-config.js"></script>
+    <script src="../../js/utils.js"></script>
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/firestore.js"></script>
+    <script src="../../js/components.js"></script>
+    <script src="../../js/router.js"></script>
+    <script src="../../js/app.js"></script>
+
+    <script>
+        let allTransactions = [];
+        let allMembers = [];
+
+        window.addEventListener('userDataLoaded', async (e) => {
+            const user = e.detail;
+
+            if (!user.roles?.includes('leader') && !user.roles?.includes('finance')) {
+                Utils.showToast('Access denied. Leader or Finance role required.', 'error');
+                setTimeout(() => window.history.back(), 1500);
+                return;
+            }
+
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('pageContent').style.display = 'block';
+
+            await loadData();
+        });
+
+        async function loadData() {
+            try {
+                // Fetch all and sort client-side to avoid composite index requirements
+                const [transSnap, usersSnap] = await Promise.all([
+                    db.collection('transactions').get(),
+                    db.collection('users').get()
+                ]);
+
+                allTransactions = transSnap.docs
+                    .map(d => ({ id: d.id, ...d.data() }))
+                    .sort((a, b) => {
+                        const aDate = a.date?.toDate?.() || new Date(0);
+                        const bDate = b.date?.toDate?.() || new Date(0);
+                        return bDate - aDate;
+                    });
+                allMembers = usersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+                updateStats();
+                renderTransactions(allTransactions);
+            } catch (error) {
+                console.error('Error:', error);
+                Utils.showToast('Error loading data', 'error');
+            }
+        }
+
+        function updateStats() {
+            let credits = 0, debits = 0;
+            allTransactions.forEach(t => {
+                if (t.type === 'credit') credits += (t.amount || 0);
+                else debits += (t.amount || 0);
+            });
+
+            document.getElementById('totalCredits').textContent = Utils.formatCurrency(credits);
+            document.getElementById('totalDebits').textContent = Utils.formatCurrency(debits);
+            document.getElementById('currentBalance').textContent = Utils.formatCurrency(credits - debits);
+            document.getElementById('transactionCount').textContent = allTransactions.length;
+        }
+
+        function renderTransactions(transactions) {
+            const tbody = document.getElementById('transactionsTable');
+
+            if (transactions.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No transactions found. Add your first transaction!</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = transactions.map(t => {
+                const member = allMembers.find(m => m.id === t.memberId);
+                const isCredit = t.type === 'credit';
+
+                return `
+                    <tr style="border-bottom: 1px solid var(--bg-glass-border);">
+                        <td style="padding: 12px;">
+                            <div style="font-weight: 500;">${t.date ? Utils.formatDate(t.date) : '-'}</div>
+                            <div class="text-xs text-muted">${t.createdAt ? Utils.timeAgo(t.createdAt) : ''}</div>
+                        </td>
+                        <td style="padding: 12px;">
+                            <div style="font-weight: 500;">${t.description || 'No description'}</div>
+                            ${t.notes ? `<div class="text-xs text-muted">${t.notes}</div>` : ''}
+                        </td>
+                        <td style="padding: 12px;">
+                            <span style="padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; background: var(--bg-glass); text-transform: capitalize;">
+                                ${t.category || 'Other'}
+                            </span>
+                        </td>
+                        <td style="padding: 12px;">
+                            ${member ? member.name : (t.memberName || '-')}
+                        </td>
+                        <td style="padding: 12px; text-align: right;">
+                            <span style="font-weight: 600; font-size: 1.1rem; color: ${isCredit ? 'var(--success-500)' : 'var(--danger-500)'};">
+                                ${isCredit ? '+' : '-'}${Utils.formatCurrency(t.amount)}
+                            </span>
+                        </td>
+                        <td style="padding: 12px;">
+                            <div style="display: flex; gap: 4px;">
+                                <button class="btn btn-ghost btn-sm" onclick="viewTransaction('${t.id}')" title="View">👁</button>
+                                <button class="btn btn-ghost btn-sm" onclick="editTransaction('${t.id}')" title="Edit">✏️</button>
+                                <button class="btn btn-ghost btn-sm" onclick="deleteTransaction('${t.id}')" title="Delete">🗑️</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Filters
+        document.getElementById('searchInput').addEventListener('input', applyFilters);
+        document.getElementById('filterType').addEventListener('change', applyFilters);
+        document.getElementById('filterCategory').addEventListener('change', applyFilters);
+        document.getElementById('filterDateFrom').addEventListener('change', applyFilters);
+        document.getElementById('filterDateTo').addEventListener('change', applyFilters);
+
+        function applyFilters() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const type = document.getElementById('filterType').value;
+            const category = document.getElementById('filterCategory').value;
+            const dateFrom = document.getElementById('filterDateFrom').value;
+            const dateTo = document.getElementById('filterDateTo').value;
+
+            let filtered = allTransactions;
+
+            if (query) {
+                filtered = filtered.filter(t =>
+                    (t.description || '').toLowerCase().includes(query) ||
+                    (t.notes || '').toLowerCase().includes(query) ||
+                    (t.memberName || '').toLowerCase().includes(query)
+                );
+            }
+
+            if (type) filtered = filtered.filter(t => t.type === type);
+            if (category) filtered = filtered.filter(t => t.category === category);
+
+            if (dateFrom) {
+                const from = new Date(dateFrom);
+                filtered = filtered.filter(t => t.date && new Date(t.date.toDate ? t.date.toDate() : t.date) >= from);
+            }
+
+            if (dateTo) {
+                const to = new Date(dateTo);
+                to.setHours(23, 59, 59);
+                filtered = filtered.filter(t => t.date && new Date(t.date.toDate ? t.date.toDate() : t.date) <= to);
+            }
+
+            document.getElementById('filterInfo').textContent = `Showing ${filtered.length} of ${allTransactions.length} transactions`;
+            renderTransactions(filtered);
+        }
+
+        function showAddTransactionModal(type = 'credit') {
+            const isCredit = type === 'credit';
+            const memberOptions = allMembers.map(m => `<option value="${m.id}">${m.name || m.email}</option>`).join('');
+
+            Modal.show({
+                title: isCredit ? 'Record Credit (Money In)' : 'Record Debit (Money Out)',
+                size: 'large',
+                content: `
+                    <form id="transactionForm">
+                        <div style="padding: 1rem; margin-bottom: 1rem; background: ${isCredit ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'}; border-radius: 12px; border-left: 4px solid ${isCredit ? 'var(--success-500)' : 'var(--danger-500)'};">
+                            <strong>${isCredit ? '📈 Credit Transaction' : '📉 Debit Transaction'}</strong>
+                            <p class="text-sm text-muted">${isCredit ? 'Money coming into the account (collections, donations, etc.)' : 'Money going out of the account (expenses, refunds, etc.)'}</p>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div class="form-group">
+                                <label class="form-label">Amount (₹) *</label>
+                                <input type="number" class="form-input" id="txAmount" required placeholder="0" min="1" style="font-size: 1.25rem;">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Date *</label>
+                                <input type="date" class="form-input" id="txDate" required value="${new Date().toISOString().split('T')[0]}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Category *</label>
+                                <select class="form-input" id="txCategory" required>
+                                    ${isCredit ? `
+                                        <option value="collection">Collection</option>
+                                        <option value="donation">Donation</option>
+                                        <option value="sponsorship">Sponsorship</option>
+                                        <option value="other">Other</option>
+                                    ` : `
+                                        <option value="expense">General Expense</option>
+                                        <option value="equipment">Equipment</option>
+                                        <option value="travel">Travel</option>
+                                        <option value="food">Food & Refreshments</option>
+                                        <option value="supplies">Supplies</option>
+                                        <option value="refund">Refund</option>
+                                        <option value="other">Other</option>
+                                    `}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Related Member</label>
+                                <select class="form-input" id="txMember">
+                                    <option value="">-- Select Member (Optional) --</option>
+                                    ${memberOptions}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 1rem;">
+                            <label class="form-label">Description *</label>
+                            <input type="text" class="form-input" id="txDescription" required placeholder="Brief description of this transaction...">
+                        </div>
+
+                        <div class="form-group" style="margin-top: 1rem;">
+                            <label class="form-label">Notes</label>
+                            <textarea class="form-input" id="txNotes" rows="2" placeholder="Additional details (receipt number, reference, etc.)"></textarea>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 1rem;">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" id="txReceipt">
+                                <span>I have a receipt/proof for this transaction</span>
+                            </label>
+                        </div>
+                    </form>
+                `,
+                submitText: isCredit ? '✓ Record Credit' : '✓ Record Debit',
+                onSubmit: () => saveTransaction(type)
+            });
+        }
+
+        async function saveTransaction(type) {
+            const amount = Number(document.getElementById('txAmount').value);
+            const date = document.getElementById('txDate').value;
+            const category = document.getElementById('txCategory').value;
+            const memberId = document.getElementById('txMember').value;
+            const description = document.getElementById('txDescription').value.trim();
+            const notes = document.getElementById('txNotes').value.trim();
+            const hasReceipt = document.getElementById('txReceipt').checked;
+
+            if (!amount || amount <= 0 || !date || !description) {
+                Utils.showToast('Please fill all required fields', 'error');
+                return;
+            }
+
+            const member = memberId ? allMembers.find(m => m.id === memberId) : null;
+
+            try {
+                await db.collection('transactions').add({
+                    type,
+                    amount,
+                    date: new Date(date),
+                    category,
+                    memberId: memberId || null,
+                    memberName: member?.name || null,
+                    description,
+                    notes,
+                    hasReceipt,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    createdBy: Auth.userData?.uid
+                });
+
+                Utils.showToast(`${type === 'credit' ? 'Credit' : 'Debit'} recorded successfully!`, 'success');
+                Modal.close();
+                loadData();
+            } catch (error) {
+                Utils.showToast('Error: ' + error.message, 'error');
+            }
+        }
+
+        function viewTransaction(transactionId) {
+            const t = allTransactions.find(tx => tx.id === transactionId);
+            if (!t) return;
+
+            const isCredit = t.type === 'credit';
+            const member = allMembers.find(m => m.id === t.memberId);
+
+            Modal.show({
+                title: 'Transaction Details',
+                content: `
+                    <div style="text-align: center; padding: 1rem 0;">
+                        <div style="font-size: 3rem; margin-bottom: 0.5rem; color: ${isCredit ? 'var(--success-500)' : 'var(--danger-500)'};">
+                            ${isCredit ? '+' : '-'}${Utils.formatCurrency(t.amount)}
+                        </div>
+                        <span style="padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; background: ${isCredit ? 'var(--success-500)' : 'var(--danger-500)'}; color: white;">
+                            ${t.type.toUpperCase()}
+                        </span>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.5rem 0;">
+                        <div style="padding: 1rem; background: var(--bg-glass); border-radius: 12px;">
+                            <div class="text-muted text-sm">Date</div>
+                            <div style="font-weight: 500;">${t.date ? Utils.formatDate(t.date) : '-'}</div>
+                        </div>
+                        <div style="padding: 1rem; background: var(--bg-glass); border-radius: 12px;">
+                            <div class="text-muted text-sm">Category</div>
+                            <div style="font-weight: 500; text-transform: capitalize;">${t.category || '-'}</div>
+                        </div>
+                        <div style="padding: 1rem; background: var(--bg-glass); border-radius: 12px;">
+                            <div class="text-muted text-sm">Member</div>
+                            <div style="font-weight: 500;">${member?.name || t.memberName || '-'}</div>
+                        </div>
+                        <div style="padding: 1rem; background: var(--bg-glass); border-radius: 12px;">
+                            <div class="text-muted text-sm">Receipt</div>
+                            <div style="font-weight: 500;">${t.hasReceipt ? '✓ Yes' : '✗ No'}</div>
+                        </div>
+                    </div>
+
+                    <div style="padding: 1rem; background: var(--bg-glass); border-radius: 12px; margin-bottom: 1rem;">
+                        <div class="text-muted text-sm">Description</div>
+                        <div style="font-weight: 500;">${t.description || '-'}</div>
+                    </div>
+
+                    ${t.notes ? `
+                        <div style="padding: 1rem; background: var(--bg-glass); border-radius: 12px;">
+                            <div class="text-muted text-sm">Notes</div>
+                            <div>${t.notes}</div>
+                        </div>
+                    ` : ''}
+
+                    <div class="text-xs text-muted mt-lg text-center">
+                        Added ${t.createdAt ? Utils.timeAgo(t.createdAt) : 'Unknown'}
+                    </div>
+                `,
+                submitText: 'Close',
+                cancelText: ''
+            });
+        }
+
+        function editTransaction(transactionId) {
+            const t = allTransactions.find(tx => tx.id === transactionId);
+            if (!t) return;
+
+            const memberOptions = allMembers.map(m =>
+                `<option value="${m.id}" ${t.memberId === m.id ? 'selected' : ''}>${m.name || m.email}</option>`
+            ).join('');
+
+            const dateStr = t.date ? (t.date.toDate ? t.date.toDate() : new Date(t.date)).toISOString().split('T')[0] : '';
+
+            Modal.show({
+                title: 'Edit Transaction',
+                size: 'large',
+                content: `
+                    <form id="editTransactionForm">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div class="form-group">
+                                <label class="form-label">Amount (₹) *</label>
+                                <input type="number" class="form-input" id="editAmount" value="${t.amount}" required min="1">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Date *</label>
+                                <input type="date" class="form-input" id="editDate" value="${dateStr}" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Category</label>
+                                <select class="form-input" id="editCategory">
+                                    <option value="collection" ${t.category === 'collection' ? 'selected' : ''}>Collection</option>
+                                    <option value="expense" ${t.category === 'expense' ? 'selected' : ''}>Expense</option>
+                                    <option value="donation" ${t.category === 'donation' ? 'selected' : ''}>Donation</option>
+                                    <option value="equipment" ${t.category === 'equipment' ? 'selected' : ''}>Equipment</option>
+                                    <option value="travel" ${t.category === 'travel' ? 'selected' : ''}>Travel</option>
+                                    <option value="food" ${t.category === 'food' ? 'selected' : ''}>Food</option>
+                                    <option value="refund" ${t.category === 'refund' ? 'selected' : ''}>Refund</option>
+                                    <option value="other" ${t.category === 'other' ? 'selected' : ''}>Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Related Member</label>
+                                <select class="form-input" id="editMember">
+                                    <option value="">-- None --</option>
+                                    ${memberOptions}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-top: 1rem;">
+                            <label class="form-label">Description</label>
+                            <input type="text" class="form-input" id="editDescription" value="${t.description || ''}">
+                        </div>
+                        <div class="form-group" style="margin-top: 1rem;">
+                            <label class="form-label">Notes</label>
+                            <textarea class="form-input" id="editNotes" rows="2">${t.notes || ''}</textarea>
+                        </div>
+                    </form>
+                `,
+                submitText: 'Save Changes',
+                onSubmit: () => updateTransaction(transactionId)
+            });
+        }
+
+        async function updateTransaction(transactionId) {
+            const amount = Number(document.getElementById('editAmount').value);
+            const date = document.getElementById('editDate').value;
+            const category = document.getElementById('editCategory').value;
+            const memberId = document.getElementById('editMember').value;
+            const description = document.getElementById('editDescription').value.trim();
+            const notes = document.getElementById('editNotes').value.trim();
+
+            const member = memberId ? allMembers.find(m => m.id === memberId) : null;
+
+            try {
+                await db.collection('transactions').doc(transactionId).update({
+                    amount,
+                    date: new Date(date),
+                    category,
+                    memberId: memberId || null,
+                    memberName: member?.name || null,
+                    description,
+                    notes,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                Utils.showToast('Transaction updated!', 'success');
+                Modal.close();
+                loadData();
+            } catch (error) {
+                Utils.showToast('Error: ' + error.message, 'error');
+            }
+        }
+
+        function deleteTransaction(transactionId) {
+            Modal.confirm('Are you sure you want to delete this transaction? This action cannot be undone.', async () => {
+                try {
+                    await db.collection('transactions').doc(transactionId).delete();
+                    Utils.showToast('Transaction deleted!', 'success');
+                    loadData();
+                } catch (error) {
+                    Utils.showToast('Error: ' + error.message, 'error');
+                }
+            });
+        }
+
+        function showCollectionModal() {
+            const memberCheckboxes = allMembers.filter(m => m.isActive !== false).map(m => `
+                <label style="display: flex; align-items: center; gap: 4px; padding: 6px 10px; background: var(--bg-glass); border-radius: 8px; cursor: pointer;">
+                    <input type="checkbox" name="collectionMembers" value="${m.id}" data-name="${m.name || m.email}" checked>
+                    ${m.name || m.email}
+                </label>
+            `).join('');
+
+            Modal.show({
+                title: 'Create Collection Request',
+                size: 'large',
+                content: `
+                    <form id="collectionForm">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div class="form-group">
+                                <label class="form-label">Title / Reason *</label>
+                                <input type="text" class="form-input" id="collTitle" required placeholder="e.g., Monthly Subscription">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Amount per Person (₹) *</label>
+                                <input type="number" class="form-input" id="collAmount" required placeholder="100" min="1">
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 1rem;">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-input" id="collDescription" rows="2" placeholder="What is this collection for?"></textarea>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 1rem;">
+                            <label class="form-label">Due Date</label>
+                            <input type="date" class="form-input" id="collDeadline" style="max-width: 200px;">
+                        </div>
+
+                        <div class="form-group" style="margin-top: 1rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                <label class="form-label" style="margin: 0;">Select Members</label>
+                                <button type="button" class="btn btn-ghost btn-sm" onclick="toggleAllMembers()">Toggle All</button>
+                            </div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; max-height: 200px; overflow-y: auto; padding: 0.5rem; background: var(--bg-glass); border-radius: 8px;">
+                                ${memberCheckboxes}
+                            </div>
+                        </div>
+                    </form>
+                `,
+                submitText: 'Create Collection',
+                onSubmit: saveCollection
+            });
+        }
+
+        function toggleAllMembers() {
+            const checkboxes = document.querySelectorAll('input[name="collectionMembers"]');
+            const allChecked = Array.from(checkboxes).every(c => c.checked);
+            checkboxes.forEach(c => c.checked = !allChecked);
+        }
+
+        async function saveCollection() {
+            const title = document.getElementById('collTitle').value.trim();
+            const amount = Number(document.getElementById('collAmount').value);
+            const description = document.getElementById('collDescription').value.trim();
+            const deadline = document.getElementById('collDeadline').value;
+
+            const memberInputs = document.querySelectorAll('input[name="collectionMembers"]:checked');
+            const assignedMembers = Array.from(memberInputs).map(input => ({
+                userId: input.value,
+                userName: input.dataset.name,
+                amount: amount,
+                status: 'pending'
+            }));
+
+            if (!title || !amount || assignedMembers.length === 0) {
+                Utils.showToast('Please fill all required fields and select at least one member', 'error');
+                return;
+            }
+
+            try {
+                await db.collection('moneyCollections').add({
+                    title,
+                    amount,
+                    description,
+                    deadline: deadline ? new Date(deadline) : null,
+                    assignedMembers,
+                    status: 'active',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    createdBy: Auth.userData?.uid
+                });
+
+                Utils.showToast(`Collection created for ${assignedMembers.length} members!`, 'success');
+                Modal.close();
+            } catch (error) {
+                Utils.showToast('Error: ' + error.message, 'error');
+            }
+        }
+
+        function exportTransactions() {
+            const csv = [
+                ['Date', 'Type', 'Amount', 'Category', 'Member', 'Description', 'Notes'].join(','),
+                ...allTransactions.map(t => [
+                    t.date ? Utils.formatDate(t.date) : '',
+                    t.type,
+                    t.amount,
+                    t.category || '',
+                    t.memberName || '',
+                    `"${(t.description || '').replace(/"/g, '""')}"`,
+                    `"${(t.notes || '').replace(/"/g, '""')}"`
+                ].join(','))
+            ].join('\n');
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `transactions_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            Utils.showToast('Export downloaded!', 'success');
+        }
+
+        Router.initPage();
+    </script>
+</body>
+
+</html>
