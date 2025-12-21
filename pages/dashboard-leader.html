@@ -35,6 +35,8 @@
                             </div>
                             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                                 <button class="btn" style="background: rgba(255,255,255,0.2); color: white;"
+                                    onclick="showExportOptions()">📄 Export Reports</button>
+                                <button class="btn" style="background: rgba(255,255,255,0.2); color: white;"
                                     onclick="showAssignTaskModal()">+ Assign Task</button>
                                 <button class="btn" style="background: rgba(255,255,255,0.2); color: white;"
                                     onclick="showCollectionModal()">💰 Collect</button>
@@ -184,6 +186,115 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- LEADER FULL ACCESS SECTIONS -->
+                    <div style="margin-top: 1.5rem;">
+                        <!-- Section Tabs -->
+                        <div class="card mb-lg">
+                            <div class="card-body" style="display: flex; gap: 0.5rem; flex-wrap: wrap; padding: 1rem;">
+                                <button class="btn btn-primary" onclick="showSection('allLogs')" id="tabLogs">📋 All
+                                    User Logs</button>
+                                <button class="btn btn-secondary" onclick="showSection('allTasks')" id="tabTasks">✅ All
+                                    Tasks</button>
+                                <button class="btn btn-secondary" onclick="showSection('allInventory')"
+                                    id="tabInventory">💻 All Inventory</button>
+                                <button class="btn btn-secondary" onclick="showSection('allIssues')" id="tabIssues">🐛
+                                    All Issues</button>
+                                <button class="btn btn-secondary" onclick="showSection('allTransactions')"
+                                    id="tabTransactions">💰 All Transactions</button>
+                            </div>
+                        </div>
+
+                        <!-- All User Logs Section -->
+                        <div class="card" id="sectionAllLogs">
+                            <div class="card-header">
+                                <h3 class="card-title">📋 All User Activity Logs</h3>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <select class="form-input" id="logUserFilter" style="max-width: 200px;">
+                                        <option value="">All Users</option>
+                                    </select>
+                                    <select class="form-input" id="logTypeFilter" style="max-width: 150px;">
+                                        <option value="">All Types</option>
+                                        <option value="task">Tasks</option>
+                                        <option value="payment">Payments</option>
+                                        <option value="personal_note">Notes</option>
+                                        <option value="event">Events</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="card-body" id="allLogsContent" style="max-height: 500px; overflow-y: auto;">
+                                <p class="text-muted text-center py-4">Loading all logs...</p>
+                            </div>
+                        </div>
+
+                        <!-- All Tasks Section -->
+                        <div class="card" id="sectionAllTasks" style="display: none;">
+                            <div class="card-header">
+                                <h3 class="card-title">✅ All Team Tasks</h3>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <select class="form-input" id="taskStatusFilter" style="max-width: 150px;">
+                                        <option value="">All Status</option>
+                                        <option value="pending">Pending</option>
+                                        <option value="in-progress">In Progress</option>
+                                        <option value="completed">Completed</option>
+                                    </select>
+                                    <select class="form-input" id="taskUserFilter" style="max-width: 200px;">
+                                        <option value="">All Users</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="card-body" id="allTasksContent" style="max-height: 500px; overflow-y: auto;">
+                                <p class="text-muted text-center py-4">Loading all tasks...</p>
+                            </div>
+                        </div>
+
+                        <!-- All Inventory Section -->
+                        <div class="card" id="sectionAllInventory" style="display: none;">
+                            <div class="card-header">
+                                <h3 class="card-title">💻 Hardware & Software Inventory</h3>
+                                <button class="btn btn-ghost btn-sm" onclick="showAddDeviceModal()">+ Add
+                                    Device</button>
+                            </div>
+                            <div class="card-body" id="allInventoryContent"
+                                style="max-height: 500px; overflow-y: auto;">
+                                <p class="text-muted text-center py-4">Loading inventory...</p>
+                            </div>
+                        </div>
+
+                        <!-- All Issues Section -->
+                        <div class="card" id="sectionAllIssues" style="display: none;">
+                            <div class="card-header">
+                                <h3 class="card-title">🐛 All Reported Issues</h3>
+                                <select class="form-input" id="issueStatusFilter" style="max-width: 150px;">
+                                    <option value="">All Status</option>
+                                    <option value="open">Open</option>
+                                    <option value="in-progress">In Progress</option>
+                                    <option value="resolved">Resolved</option>
+                                </select>
+                            </div>
+                            <div class="card-body" id="allIssuesContent" style="max-height: 500px; overflow-y: auto;">
+                                <p class="text-muted text-center py-4">Loading issues...</p>
+                            </div>
+                        </div>
+
+                        <!-- All Transactions Section -->
+                        <div class="card" id="sectionAllTransactions" style="display: none;">
+                            <div class="card-header">
+                                <h3 class="card-title">💰 All Financial Transactions</h3>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <select class="form-input" id="transTypeFilter" style="max-width: 150px;">
+                                        <option value="">All Types</option>
+                                        <option value="credit">Income</option>
+                                        <option value="debit">Expense</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="card-body" id="allTransactionsContent"
+                                style="max-height: 500px; overflow-y: auto;">
+                                <p class="text-muted text-center py-4">Loading transactions...</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -201,6 +312,7 @@
     <script src="../js/firestore.js"></script>
     <script src="../js/components.js"></script>
     <script src="../js/reports.js"></script>
+    <script src="../js/notifications.js"></script>
     <script src="../js/router.js"></script>
     <script src="../js/app.js"></script>
 
@@ -441,9 +553,353 @@
             });
         }
 
-        function downloadReport() {
-            Reports.generateMonthlyReport();
+        function showExportOptions() {
+            Modal.show({
+                title: 'Export Reports',
+                content: `
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        <button class="btn btn-secondary" style="justify-content: flex-start;" onclick="Reports.generateActivityReport(); Modal.close();">
+                            📋 Activity Log Report
+                        </button>
+                        <button class="btn btn-secondary" style="justify-content: flex-start;" onclick="Reports.generateFinancialReport(); Modal.close();">
+                            💰 Financial Report
+                        </button>
+                        <button class="btn btn-secondary" style="justify-content: flex-start;" onclick="Reports.generateTaskReport(); Modal.close();">
+                            ✅ Task Report
+                        </button>
+                        <button class="btn btn-secondary" style="justify-content: flex-start;" onclick="Reports.generateMemberReport(); Modal.close();">
+                            👥 Team Member Report
+                        </button>
+                    </div>
+                    <p class="text-muted text-sm mt-lg">Reports are generated as PDF files with complete, formatted data.</p>
+                `,
+                submitText: 'Close',
+                cancelText: ''
+            });
         }
+
+        // ==========================================
+        // LEADER FULL ACCESS FUNCTIONS
+        // ==========================================
+
+        let allUsersData = [];
+        let allLogsData = [];
+        let allTasksData = [];
+        let allInventoryData = [];
+        let allIssuesData = [];
+        let allTransactionsData = [];
+
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('[id^="sectionAll"]').forEach(el => el.style.display = 'none');
+            // Show selected section
+            document.getElementById('section' + sectionId.charAt(0).toUpperCase() + sectionId.slice(1)).style.display = 'block';
+
+            // Update tabs
+            document.querySelectorAll('[id^="tab"]').forEach(el => el.classList.remove('btn-primary'));
+            document.querySelectorAll('[id^="tab"]').forEach(el => el.classList.add('btn-secondary'));
+            const tabId = 'tab' + sectionId.replace('all', '');
+            document.getElementById(tabId)?.classList.remove('btn-secondary');
+            document.getElementById(tabId)?.classList.add('btn-primary');
+        }
+
+        async function loadLeaderFullAccessData() {
+            try {
+                // Load all users for filters
+                const usersSnap = await db.collection('users').get();
+                allUsersData = usersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+                // Populate user filters
+                const userOptions = allUsersData.map(u => `<option value="${u.id}">${u.name || u.email || 'Unknown'}</option>`).join('');
+                document.getElementById('logUserFilter').innerHTML = '<option value="">All Users</option>' + userOptions;
+                document.getElementById('taskUserFilter').innerHTML = '<option value="">All Users</option>' + userOptions;
+
+                // Load all logs
+                const logsSnap = await db.collection('logs').get();
+                allLogsData = logsSnap.docs.map(d => ({ id: d.id, ...d.data() }))
+                    .sort((a, b) => (b.createdAt?.toDate?.() || 0) - (a.createdAt?.toDate?.() || 0));
+                renderAllLogs();
+
+                // Load all tasks (filter from logs where type = task)
+                allTasksData = allLogsData.filter(l => l.type === 'task');
+                renderAllTasks();
+
+                // Load all inventory
+                const inventorySnap = await db.collection('inventory').get();
+                allInventoryData = inventorySnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                renderAllInventory();
+
+                // Load all issues
+                const issuesSnap = await db.collection('issues').get();
+                allIssuesData = issuesSnap.docs.map(d => ({ id: d.id, ...d.data() }))
+                    .sort((a, b) => (b.createdAt?.toDate?.() || 0) - (a.createdAt?.toDate?.() || 0));
+                renderAllIssues();
+
+                // Load all transactions
+                const transSnap = await db.collection('transactions').get();
+                allTransactionsData = transSnap.docs.map(d => ({ id: d.id, ...d.data() }))
+                    .sort((a, b) => (b.date?.toDate?.() || 0) - (a.date?.toDate?.() || 0));
+                renderAllTransactions();
+
+            } catch (error) {
+                console.error('Error loading leader data:', error);
+            }
+        }
+
+        function getUserName(userId) {
+            const user = allUsersData.find(u => u.id === userId);
+            return user?.name || user?.email?.split('@')[0] || 'Unknown';
+        }
+
+        function renderAllLogs() {
+            const userFilter = document.getElementById('logUserFilter').value;
+            const typeFilter = document.getElementById('logTypeFilter').value;
+
+            let filtered = allLogsData;
+            if (userFilter) filtered = filtered.filter(l => l.createdBy === userFilter || l.data?.assignee === userFilter);
+            if (typeFilter) filtered = filtered.filter(l => l.type === typeFilter);
+
+            if (filtered.length === 0) {
+                document.getElementById('allLogsContent').innerHTML = '<p class="text-muted text-center py-4">No logs found</p>';
+                return;
+            }
+
+            document.getElementById('allLogsContent').innerHTML = filtered.slice(0, 50).map(log => `
+                <div style="padding: 0.75rem; border-bottom: 1px solid var(--bg-glass-border); display: flex; justify-content: space-between; align-items: center;">
+                    <div style="flex: 1;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span style="padding: 0.2rem 0.5rem; background: var(--bg-glass); border-radius: 12px; font-size: 0.7rem; text-transform: uppercase;">${log.type || 'log'}</span>
+                            <strong>${log.data?.title || log.title || 'Log Entry'}</strong>
+                        </div>
+                        <div class="text-sm text-muted" style="margin-top: 0.25rem;">
+                            👤 ${getUserName(log.createdBy || log.data?.assignee)} • ${Utils.timeAgo(log.createdAt)}
+                        </div>
+                        ${log.data?.description ? `<div class="text-sm" style="margin-top: 0.25rem; opacity: 0.8;">${Utils.truncate(log.data.description, 100)}</div>` : ''}
+                    </div>
+                    <div style="text-align: right;">
+                        ${log.data?.status ? `<span class="badge ${log.data.status === 'completed' ? 'badge-success' : 'badge-warning'}">${log.data.status}</span>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderAllTasks() {
+            const statusFilter = document.getElementById('taskStatusFilter').value;
+            const userFilter = document.getElementById('taskUserFilter').value;
+
+            let filtered = allTasksData;
+            if (statusFilter) filtered = filtered.filter(t => t.data?.status === statusFilter);
+            if (userFilter) filtered = filtered.filter(t => t.data?.assignee === userFilter);
+
+            if (filtered.length === 0) {
+                document.getElementById('allTasksContent').innerHTML = '<p class="text-muted text-center py-4">No tasks found</p>';
+                return;
+            }
+
+            document.getElementById('allTasksContent').innerHTML = `
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--bg-glass-border);">
+                            <th style="text-align: left; padding: 0.75rem;">Task</th>
+                            <th style="text-align: left; padding: 0.75rem;">Assigned To</th>
+                            <th style="text-align: center; padding: 0.75rem;">Priority</th>
+                            <th style="text-align: center; padding: 0.75rem;">Status</th>
+                            <th style="text-align: right; padding: 0.75rem;">Created</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${filtered.map(t => `
+                            <tr style="border-bottom: 1px solid var(--bg-glass-border);">
+                                <td style="padding: 0.75rem;">
+                                    <div style="font-weight: 500;">${t.data?.title || 'Untitled'}</div>
+                                    <div class="text-xs text-muted">${Utils.truncate(t.data?.description || '', 50)}</div>
+                                </td>
+                                <td style="padding: 0.75rem;">${t.data?.assigneeName || getUserName(t.data?.assignee)}</td>
+                                <td style="text-align: center; padding: 0.75rem;">
+                                    <span class="badge ${t.data?.priority === 'high' ? 'badge-danger' : t.data?.priority === 'low' ? 'badge-success' : 'badge-warning'}">${t.data?.priority || 'medium'}</span>
+                                </td>
+                                <td style="text-align: center; padding: 0.75rem;">
+                                    <span class="badge ${t.data?.status === 'completed' ? 'badge-success' : t.data?.status === 'in-progress' ? 'badge-info' : 'badge-warning'}">${t.data?.status || 'pending'}</span>
+                                </td>
+                                <td style="text-align: right; padding: 0.75rem; font-size: 0.85rem;">${Utils.timeAgo(t.createdAt)}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function renderAllInventory() {
+            if (allInventoryData.length === 0) {
+                document.getElementById('allInventoryContent').innerHTML = '<p class="text-muted text-center py-4">No inventory items</p>';
+                return;
+            }
+
+            const typeIcons = { laptop: '💻', tablet: '📱', phone: '📱', accessory: '🎧', camera: '📷', other: '📦' };
+
+            document.getElementById('allInventoryContent').innerHTML = `
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--bg-glass-border);">
+                            <th style="text-align: left; padding: 0.75rem;">Device</th>
+                            <th style="text-align: left; padding: 0.75rem;">Type</th>
+                            <th style="text-align: left; padding: 0.75rem;">Serial #</th>
+                            <th style="text-align: center; padding: 0.75rem;">Status</th>
+                            <th style="text-align: right; padding: 0.75rem;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${allInventoryData.map(item => `
+                            <tr style="border-bottom: 1px solid var(--bg-glass-border);">
+                                <td style="padding: 0.75rem;">
+                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <span style="font-size: 1.25rem;">${typeIcons[item.type] || '📦'}</span>
+                                        <div>
+                                            <div style="font-weight: 500;">${item.name || 'Unnamed'}</div>
+                                            ${item.notes ? `<div class="text-xs text-muted">${Utils.truncate(item.notes, 30)}</div>` : ''}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="padding: 0.75rem; text-transform: capitalize;">${item.type || 'other'}</td>
+                                <td style="padding: 0.75rem; font-family: monospace;">${item.serialNumber || '-'}</td>
+                                <td style="text-align: center; padding: 0.75rem;">
+                                    <span class="badge ${item.status === 'available' ? 'badge-success' : item.status === 'in-use' ? 'badge-info' : 'badge-warning'}">${item.status || 'available'}</span>
+                                </td>
+                                <td style="text-align: right; padding: 0.75rem;">
+                                    <button class="btn btn-ghost btn-sm" onclick="deleteItem('inventory', '${item.id}')">🗑️</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function renderAllIssues() {
+            const statusFilter = document.getElementById('issueStatusFilter').value;
+            let filtered = allIssuesData;
+            if (statusFilter) filtered = filtered.filter(i => i.status === statusFilter);
+
+            if (filtered.length === 0) {
+                document.getElementById('allIssuesContent').innerHTML = '<p class="text-muted text-center py-4">No issues found</p>';
+                return;
+            }
+
+            document.getElementById('allIssuesContent').innerHTML = filtered.map(issue => `
+                <div style="padding: 0.75rem; border-bottom: 1px solid var(--bg-glass-border); border-left: 4px solid var(--${issue.priority === 'critical' ? 'danger' : issue.priority === 'high' ? 'warning' : 'info'}-500);">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600;">${issue.title || 'Untitled Issue'}</div>
+                            <div class="text-sm text-muted" style="margin-top: 0.25rem;">
+                                Reported by ${getUserName(issue.createdBy)} • ${Utils.timeAgo(issue.createdAt)}
+                            </div>
+                            ${issue.description ? `<div class="text-sm" style="margin-top: 0.5rem;">${Utils.truncate(issue.description, 150)}</div>` : ''}
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <span class="badge ${issue.status === 'resolved' ? 'badge-success' : issue.status === 'in-progress' ? 'badge-info' : 'badge-warning'}">${issue.status || 'open'}</span>
+                            <button class="btn btn-ghost btn-sm" onclick="updateIssueStatus('${issue.id}', '${issue.status}')">${issue.status === 'open' ? '▶️' : issue.status === 'in-progress' ? '✅' : '↩️'}</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderAllTransactions() {
+            const typeFilter = document.getElementById('transTypeFilter').value;
+            let filtered = allTransactionsData;
+            if (typeFilter) filtered = filtered.filter(t => t.type === typeFilter);
+
+            if (filtered.length === 0) {
+                document.getElementById('allTransactionsContent').innerHTML = '<p class="text-muted text-center py-4">No transactions found</p>';
+                return;
+            }
+
+            let totalIncome = filtered.filter(t => t.type === 'credit').reduce((sum, t) => sum + (t.amount || 0), 0);
+            let totalExpense = filtered.filter(t => t.type === 'debit').reduce((sum, t) => sum + (t.amount || 0), 0);
+
+            document.getElementById('allTransactionsContent').innerHTML = `
+                <div style="display: flex; gap: 1rem; margin-bottom: 1rem; padding: 1rem; background: var(--bg-glass); border-radius: 12px;">
+                    <div style="flex: 1; text-align: center;">
+                        <div class="text-success" style="font-size: 1.5rem; font-weight: 700;">+${Utils.formatCurrency(totalIncome)}</div>
+                        <div class="text-muted text-sm">Total Income</div>
+                    </div>
+                    <div style="flex: 1; text-align: center;">
+                        <div class="text-danger" style="font-size: 1.5rem; font-weight: 700;">-${Utils.formatCurrency(totalExpense)}</div>
+                        <div class="text-muted text-sm">Total Expense</div>
+                    </div>
+                    <div style="flex: 1; text-align: center;">
+                        <div style="font-size: 1.5rem; font-weight: 700; color: ${totalIncome - totalExpense >= 0 ? 'var(--success-500)' : 'var(--danger-500)'}">
+                            ${Utils.formatCurrency(totalIncome - totalExpense)}
+                        </div>
+                        <div class="text-muted text-sm">Net Balance</div>
+                    </div>
+                </div>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--bg-glass-border);">
+                            <th style="text-align: left; padding: 0.75rem;">Description</th>
+                            <th style="text-align: left; padding: 0.75rem;">Category</th>
+                            <th style="text-align: center; padding: 0.75rem;">Type</th>
+                            <th style="text-align: right; padding: 0.75rem;">Amount</th>
+                            <th style="text-align: right; padding: 0.75rem;">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${filtered.map(t => `
+                            <tr style="border-bottom: 1px solid var(--bg-glass-border);">
+                                <td style="padding: 0.75rem;">${t.description || 'Transaction'}</td>
+                                <td style="padding: 0.75rem;">${t.category || 'General'}</td>
+                                <td style="text-align: center; padding: 0.75rem;">
+                                    <span class="badge ${t.type === 'credit' ? 'badge-success' : 'badge-danger'}">${t.type === 'credit' ? 'Income' : 'Expense'}</span>
+                                </td>
+                                <td style="text-align: right; padding: 0.75rem; font-weight: 600; color: ${t.type === 'credit' ? 'var(--success-500)' : 'var(--danger-500)'}">
+                                    ${t.type === 'credit' ? '+' : '-'}${Utils.formatCurrency(t.amount || 0)}
+                                </td>
+                                <td style="text-align: right; padding: 0.75rem; font-size: 0.85rem;">${t.date ? Utils.formatDate(t.date) : '-'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        async function updateIssueStatus(issueId, currentStatus) {
+            const newStatus = currentStatus === 'open' ? 'in-progress' : currentStatus === 'in-progress' ? 'resolved' : 'open';
+            try {
+                await db.collection('issues').doc(issueId).update({ status: newStatus });
+                Utils.showToast(`Issue marked as ${newStatus}`, 'success');
+                const issue = allIssuesData.find(i => i.id === issueId);
+                if (issue) issue.status = newStatus;
+                renderAllIssues();
+            } catch (error) {
+                Utils.showToast('Error updating issue', 'error');
+            }
+        }
+
+        async function deleteItem(collection, itemId) {
+            if (!confirm('Delete this item?')) return;
+            try {
+                await db.collection(collection).doc(itemId).delete();
+                Utils.showToast('Item deleted', 'success');
+                location.reload();
+            } catch (error) {
+                Utils.showToast('Error deleting item', 'error');
+            }
+        }
+
+        // Add event listeners for filters
+        document.getElementById('logUserFilter')?.addEventListener('change', renderAllLogs);
+        document.getElementById('logTypeFilter')?.addEventListener('change', renderAllLogs);
+        document.getElementById('taskStatusFilter')?.addEventListener('change', renderAllTasks);
+        document.getElementById('taskUserFilter')?.addEventListener('change', renderAllTasks);
+        document.getElementById('issueStatusFilter')?.addEventListener('change', renderAllIssues);
+        document.getElementById('transTypeFilter')?.addEventListener('change', renderAllTransactions);
+
+        // Call loadLeaderFullAccessData after initDashboard
+        window.addEventListener('userDataLoaded', () => {
+            loadLeaderFullAccessData();
+        });
+
 
         Router.initPage();
     </script>

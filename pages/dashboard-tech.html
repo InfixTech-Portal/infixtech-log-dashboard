@@ -21,62 +21,129 @@
                 </div>
 
                 <div id="dashboardContent" style="display: none;">
-                    <!-- Banner -->
+                    <!-- Enhanced Banner -->
                     <div class="card mb-lg"
-                        style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; border: none;">
+                        style="background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 50%, #8b5cf6 100%); color: white; border: none; position: relative; overflow: hidden;">
+                        <div
+                            style="position: absolute; top: -50%; right: -10%; width: 300px; height: 300px; background: rgba(255,255,255,0.1); border-radius: 50%;">
+                        </div>
+                        <div
+                            style="position: absolute; bottom: -30%; left: -5%; width: 200px; height: 200px; background: rgba(255,255,255,0.05); border-radius: 50%;">
+                        </div>
                         <div class="card-body"
-                            style="padding: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                            style="padding: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; position: relative; z-index: 1;">
                             <div>
-                                <h1 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 0.25rem;">Tech
-                                    Operations 💻</h1>
-                                <p style="opacity: 0.9; font-size: 0.9rem;">Hardware, software, and system management.
-                                </p>
+                                <h1
+                                    style="font-size: 1.75rem; font-weight: 700; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                                    <span style="font-size: 2rem;">⚡</span> Tech Operations Center
+                                </h1>
+                                <p style="opacity: 0.9; font-size: 0.9rem;">Hardware, software, systems & infrastructure
+                                    management</p>
+                                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                                    <div
+                                        style="display: flex; align-items: center; gap: 0.5rem; background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 20px;">
+                                        <span
+                                            style="width: 8px; height: 8px; background: #4ade80; border-radius: 50%; animation: pulse 2s infinite;"></span>
+                                        <span style="font-size: 0.85rem;">Systems Online</span>
+                                    </div>
+                                    <div
+                                        style="display: flex; align-items: center; gap: 0.5rem; background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 20px;">
+                                        <span style="font-size: 0.85rem;">🕐 Last sync: <span id="lastSync">Just
+                                                now</span></span>
+                                    </div>
+                                </div>
                             </div>
-                            <div style="display: flex; gap: 0.5rem;">
-                                <button class="btn" style="background: rgba(255,255,255,0.2); color: white;"
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                <button class="btn"
+                                    style="background: rgba(255,255,255,0.2); color: white; backdrop-filter: blur(10px);"
                                     onclick="showAddDeviceModal()">+ Add Device</button>
-                                <button class="btn" style="background: rgba(255,255,255,0.2); color: white;"
+                                <button class="btn"
+                                    style="background: rgba(255,255,255,0.2); color: white; backdrop-filter: blur(10px);"
+                                    onclick="showAddLicenseModal()">🔑 Add License</button>
+                                <button class="btn"
+                                    style="background: rgba(239,68,68,0.3); color: white; backdrop-filter: blur(10px);"
                                     onclick="showReportIssueModal()">🐛 Report Issue</button>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Stats -->
+                    <style>
+                        @keyframes pulse {
+
+                            0%,
+                            100% {
+                                opacity: 1;
+                                transform: scale(1);
+                            }
+
+                            50% {
+                                opacity: 0.5;
+                                transform: scale(1.2);
+                            }
+                        }
+
+                        .stat-card-enhanced {
+                            display: flex;
+                            align-items: center;
+                            gap: 1rem;
+                            padding: 1.25rem;
+                            transition: transform 0.2s, box-shadow 0.2s;
+                        }
+
+                        .stat-card-enhanced:hover {
+                            transform: translateY(-2px);
+                        }
+
+                        .stat-icon-lg {
+                            width: 56px;
+                            height: 56px;
+                            border-radius: 16px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 1.5rem;
+                        }
+                    </style>
+
+                    <!-- Enhanced Stats Row -->
                     <div
                         style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
-                        <div class="card">
-                            <div class="stat-card">
-                                <div class="stat-icon danger">💸</div>
+                        <div class="card" style="border-left: 4px solid var(--danger-500);">
+                            <div class="stat-card-enhanced">
+                                <div class="stat-icon-lg" style="background: rgba(239, 68, 68, 0.15);">💸</div>
                                 <div>
                                     <div class="stat-value" id="myDebt">₹0</div>
                                     <div class="stat-label">My Outstanding</div>
                                 </div>
                             </div>
                         </div>
-                        <div class="card">
-                            <div class="stat-card">
-                                <div class="stat-icon info">💻</div>
+                        <div class="card" style="border-left: 4px solid var(--info-500);">
+                            <div class="stat-card-enhanced">
+                                <div class="stat-icon-lg" style="background: rgba(59, 130, 246, 0.15);">💻</div>
                                 <div>
                                     <div class="stat-value" id="deviceCount">0</div>
-                                    <div class="stat-label">Devices</div>
+                                    <div class="stat-label">Total Devices</div>
+                                    <div class="text-xs text-muted" id="deviceStatus">Available: 0</div>
                                 </div>
                             </div>
                         </div>
-                        <div class="card">
-                            <div class="stat-card">
-                                <div class="stat-icon success">🔑</div>
+                        <div class="card" style="border-left: 4px solid var(--success-500);">
+                            <div class="stat-card-enhanced">
+                                <div class="stat-icon-lg" style="background: rgba(16, 185, 129, 0.15);">🔑</div>
                                 <div>
                                     <div class="stat-value" id="licenseCount">0</div>
-                                    <div class="stat-label">Licenses</div>
+                                    <div class="stat-label">Active Licenses</div>
+                                    <div class="text-xs text-warning" id="expiringLicenses">0 expiring soon</div>
                                 </div>
                             </div>
                         </div>
-                        <div class="card">
-                            <div class="stat-card">
-                                <div class="stat-icon warning">🐛</div>
+                        <div class="card" style="border-left: 4px solid var(--warning-500);">
+                            <div class="stat-card-enhanced">
+                                <div class="stat-icon-lg" style="background: rgba(245, 158, 11, 0.15);">🐛</div>
                                 <div>
                                     <div class="stat-value" id="issueCount">0</div>
                                     <div class="stat-label">Open Issues</div>
+                                    <div class="text-xs text-danger" id="criticalIssues">0 critical</div>
                                 </div>
                             </div>
                         </div>
@@ -90,42 +157,10 @@
                             <div class="card">
                                 <div class="card-header">
                                     <h3 class="card-title">Hardware Inventory</h3>
+                                    <button class="btn btn-ghost btn-sm" onclick="showAddDeviceModal()">+ Add</button>
                                 </div>
                                 <div class="card-body" id="hardwareList">
-                                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
-                                        <div
-                                            style="padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 12px; display: flex; align-items: center; gap: 1rem;">
-                                            <span style="font-size: 2rem;">💻</span>
-                                            <div>
-                                                <div style="font-size: 1.5rem; font-weight: 700;">5</div>
-                                                <div class="text-muted">Laptops</div>
-                                            </div>
-                                        </div>
-                                        <div
-                                            style="padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 12px; display: flex; align-items: center; gap: 1rem;">
-                                            <span style="font-size: 2rem;">📱</span>
-                                            <div>
-                                                <div style="font-size: 1.5rem; font-weight: 700;">3</div>
-                                                <div class="text-muted">Tablets</div>
-                                            </div>
-                                        </div>
-                                        <div
-                                            style="padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 12px; display: flex; align-items: center; gap: 1rem;">
-                                            <span style="font-size: 2rem;">🎧</span>
-                                            <div>
-                                                <div style="font-size: 1.5rem; font-weight: 700;">4</div>
-                                                <div class="text-muted">Accessories</div>
-                                            </div>
-                                        </div>
-                                        <div
-                                            style="padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 12px; display: flex; align-items: center; gap: 1rem;">
-                                            <span style="font-size: 2rem;">📷</span>
-                                            <div>
-                                                <div style="font-size: 1.5rem; font-weight: 700;">2</div>
-                                                <div class="text-muted">Cameras</div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <p class="text-muted text-center py-4">Loading inventory...</p>
                                 </div>
                             </div>
 
@@ -135,32 +170,7 @@
                                     <h3 class="card-title">Software Licenses</h3>
                                 </div>
                                 <div class="card-body" id="licensesList">
-                                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-                                        <div
-                                            style="display: flex; justify-content: space-between; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
-                                            <div>
-                                                <div style="font-weight: 600;">Adobe Creative Cloud</div>
-                                                <div class="text-sm text-muted">5 seats • Expires Dec 2025</div>
-                                            </div>
-                                            <span class="text-success">✓ Active</span>
-                                        </div>
-                                        <div
-                                            style="display: flex; justify-content: space-between; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
-                                            <div>
-                                                <div style="font-weight: 600;">Figma Professional</div>
-                                                <div class="text-sm text-muted">Unlimited • Expires Mar 2025</div>
-                                            </div>
-                                            <span class="text-success">✓ Active</span>
-                                        </div>
-                                        <div
-                                            style="display: flex; justify-content: space-between; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
-                                            <div>
-                                                <div style="font-weight: 600;">GitHub Team</div>
-                                                <div class="text-sm text-muted">10 seats • Expires Jan 2025</div>
-                                            </div>
-                                            <span class="text-warning">⚠ Expiring Soon</span>
-                                        </div>
-                                    </div>
+                                    <p class="text-muted text-center py-4">Loading licenses...</p>
                                 </div>
                             </div>
 
@@ -172,6 +182,17 @@
                                 </div>
                                 <div class="card-body" id="myTasks">
                                     <p class="text-muted text-center py-4">Loading...</p>
+                                </div>
+                            </div>
+
+                            <!-- Recent Transactions (Team Transparency) -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">📊 Recent Transactions</h3>
+                                    <span class="text-muted text-sm">Team financial transparency</span>
+                                </div>
+                                <div class="card-body" id="transactionsList">
+                                    <p class="text-muted text-center py-4">Loading transactions...</p>
                                 </div>
                             </div>
                         </div>
@@ -221,6 +242,7 @@
     <script src="../js/auth.js"></script>
     <script src="../js/firestore.js"></script>
     <script src="../js/components.js"></script>
+    <script src="../js/notifications.js"></script>
     <script src="../js/router.js"></script>
     <script src="../js/app.js"></script>
 
@@ -235,15 +257,105 @@
             const finStatus = await Firestore.getUserFinancialStatus(user.uid);
             document.getElementById('myDebt').textContent = Utils.formatCurrency(finStatus.outstandingAmount);
 
-            // Mock data for inventory (in real app, load from Firestore)
-            document.getElementById('deviceCount').textContent = '14';
-            document.getElementById('licenseCount').textContent = '8';
-            document.getElementById('issueCount').textContent = '2';
-
-            // Load Tasks using client-side filtering to avoid composite index
+            // Load real data from Firestore
             try {
-                const tasksSnap = await db.collection('logs').get();
+                const [inventorySnap, licensesSnap, issuesSnap, tasksSnap] = await Promise.all([
+                    db.collection('inventory').get(),
+                    db.collection('licenses').get(),
+                    db.collection('issues').get(),
+                    db.collection('logs').get()
+                ]);
 
+                // Inventory
+                const inventory = inventorySnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                document.getElementById('deviceCount').textContent = inventory.length;
+
+                // Count available devices
+                const availableCount = inventory.filter(i => i.status === 'available').length;
+                document.getElementById('deviceStatus').textContent = `Available: ${availableCount}`;
+
+                const typeIcons = { laptop: '💻', tablet: '📱', phone: '📱', accessory: '🎧', camera: '📷', other: '📦' };
+
+                if (inventory.length > 0) {
+                    document.getElementById('hardwareList').innerHTML = `
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid var(--bg-glass-border);">
+                                    <th style="text-align: left; padding: 0.75rem;">Device</th>
+                                    <th style="text-align: left; padding: 0.75rem;">Type</th>
+                                    <th style="text-align: left; padding: 0.75rem;">Serial #</th>
+                                    <th style="text-align: center; padding: 0.75rem;">Status</th>
+                                    <th style="text-align: right; padding: 0.75rem;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${inventory.map(item => `
+                                    <tr style="border-bottom: 1px solid var(--bg-glass-border);">
+                                        <td style="padding: 0.75rem;">
+                                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                                <span style="font-size: 1.5rem;">${typeIcons[item.type] || '📦'}</span>
+                                                <div>
+                                                    <div style="font-weight: 600;">${item.name || 'Unnamed Device'}</div>
+                                                    ${item.brand ? `<div class="text-xs text-muted">${item.brand} ${item.model || ''}</div>` : ''}
+                                                    ${item.notes ? `<div class="text-xs text-muted">${item.notes}</div>` : ''}
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td style="padding: 0.75rem; text-transform: capitalize;">${item.type || 'other'}</td>
+                                        <td style="padding: 0.75rem; font-family: monospace;">${item.serialNumber || '-'}</td>
+                                        <td style="text-align: center; padding: 0.75rem;">
+                                            <span class="badge ${item.status === 'available' ? 'badge-success' : item.status === 'in-use' ? 'badge-info' : 'badge-warning'}" style="cursor: pointer;" onclick="cycleDeviceStatus('${item.id}', '${item.status}')">
+                                                ${item.status || 'available'} ▼
+                                            </span>
+                                        </td>
+                                        <td style="text-align: right; padding: 0.75rem;">
+                                            <button class="btn btn-ghost btn-sm" onclick="editDevice('${item.id}')" title="Edit">✏️</button>
+                                            <button class="btn btn-ghost btn-sm" onclick="deleteDevice('${item.id}')" title="Delete">🗑️</button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                } else {
+                    document.getElementById('hardwareList').innerHTML = '<p class="text-muted text-center py-4">No devices in inventory. Click + Add to add devices.</p>';
+                }
+
+                // Licenses
+                const licenses = licensesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                document.getElementById('licenseCount').textContent = licenses.length;
+
+                if (licenses.length > 0) {
+                    document.getElementById('licensesList').innerHTML = licenses.map(lic => {
+                        const expiring = lic.expiryDate && new Date(lic.expiryDate.toDate?.() || lic.expiryDate) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+                        return `
+                            <div style="display: flex; justify-content: space-between; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 0.5rem;">
+                                <div>
+                                    <div style="font-weight: 600;">${lic.name || 'Untitled'}</div>
+                                    <div class="text-sm text-muted">${lic.seats || 'N/A'} seats • ${lic.expiryDate ? 'Expires ' + Utils.formatDate(lic.expiryDate) : 'No expiry'}</div>
+                                </div>
+                                <span class="${expiring ? 'text-warning' : 'text-success'}">${expiring ? '⚠ Expiring Soon' : '✓ Active'}</span>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    document.getElementById('licensesList').innerHTML = '<p class="text-muted text-center py-4">No software licenses added yet.</p>';
+                }
+
+                // Issues
+                const openIssues = issuesSnap.docs.filter(d => d.data().status === 'open').length;
+                document.getElementById('issueCount').textContent = openIssues;
+
+                // Open Issues list in sidebar
+                const issues = issuesSnap.docs.map(d => ({ id: d.id, ...d.data() })).filter(i => i.status === 'open').slice(0, 5);
+                document.getElementById('openIssues').innerHTML = issues.map(issue => `
+                    <div style="padding: 0.75rem 0; border-bottom: 1px solid var(--bg-glass-border);">
+                        <div style="font-weight: 500;">${issue.title || 'Issue'}</div>
+                        <div class="text-xs text-muted">${issue.priority || 'medium'} priority • ${Utils.timeAgo(issue.createdAt)}</div>
+                    </div>
+                `).join('') || '<p class="text-muted text-center py-4">No open issues</p>';
+
+                // Tasks
                 const tasks = tasksSnap.docs
                     .map(d => ({ id: d.id, ...d.data() }))
                     .filter(log => log.type === 'task' && log.data?.assignee === user.uid)
@@ -263,38 +375,182 @@
                         <span class="${t.data?.status === 'completed' ? 'text-success' : 'text-warning'}">${t.data?.status || 'pending'}</span>
                     </div>
                 `).join('') || '<p class="text-muted text-center py-4">No tasks assigned</p>';
+
+                // Load transactions for transparency
+                await loadTransactions();
             } catch (error) {
-                console.error('Tasks error:', error);
+                console.error('Dashboard error:', error);
             }
         });
 
-        function showAddDeviceModal() {
+        // Load all transactions (transparency for all members)
+        async function loadTransactions() {
+            try {
+                const transSnap = await db.collection('transactions').get();
+                const transactions = transSnap.docs
+                    .map(d => ({ id: d.id, ...d.data() }))
+                    .sort((a, b) => {
+                        const aDate = a.date?.toDate?.() || new Date(0);
+                        const bDate = b.date?.toDate?.() || new Date(0);
+                        return bDate - aDate;
+                    })
+                    .slice(0, 10);
+
+                if (transactions.length === 0) {
+                    document.getElementById('transactionsList').innerHTML = '<p class="text-muted text-center py-4">No transactions yet</p>';
+                } else {
+                    document.getElementById('transactionsList').innerHTML = transactions.map(t => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid var(--bg-glass-border);">
+                            <div>
+                                <div style="font-weight: 500;">${t.description || 'Transaction'}</div>
+                                <div class="text-xs text-muted">${t.date ? Utils.formatDate(t.date) : 'No date'} • ${t.category || 'General'}</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div class="font-bold ${t.type === 'credit' ? 'text-success' : 'text-danger'}">
+                                    ${t.type === 'credit' ? '+' : '-'}${Utils.formatCurrency(t.amount || 0)}
+                                </div>
+                                <div class="text-xs text-muted">${t.type === 'credit' ? 'Income' : 'Expense'}</div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading transactions:', error);
+                document.getElementById('transactionsList').innerHTML = '<p class="text-muted text-center py-4">Error loading transactions</p>';
+            }
+        }
+
+        function showAddDeviceModal(existingData = null) {
             Modal.form({
-                title: 'Add Device',
+                title: existingData ? '✏️ Edit Device' : '💻 Add New Device',
                 fields: [
-                    { name: 'name', label: 'Device Name', placeholder: 'e.g., MacBook Pro 16"', required: true },
+                    { name: 'name', label: 'Device Name', placeholder: 'e.g., MacBook Pro 16"', required: true, value: existingData?.name || '' },
+                    { name: 'brand', label: 'Brand', placeholder: 'e.g., Apple, Dell, HP', value: existingData?.brand || '' },
+                    { name: 'model', label: 'Model', placeholder: 'e.g., M3 Pro, XPS 15', value: existingData?.model || '' },
                     {
-                        name: 'type', label: 'Type', type: 'select', options: [
-                            { value: 'laptop', label: 'Laptop' },
-                            { value: 'tablet', label: 'Tablet' },
-                            { value: 'phone', label: 'Phone' },
-                            { value: 'accessory', label: 'Accessory' },
-                            { value: 'camera', label: 'Camera' },
-                            { value: 'other', label: 'Other' }
+                        name: 'type', label: 'Type', type: 'select', value: existingData?.type || 'laptop', options: [
+                            { value: 'laptop', label: '💻 Laptop' },
+                            { value: 'desktop', label: '🖥️ Desktop' },
+                            { value: 'tablet', label: '📱 Tablet' },
+                            { value: 'phone', label: '📱 Phone' },
+                            { value: 'monitor', label: '📺 Monitor' },
+                            { value: 'keyboard', label: '⌨️ Keyboard' },
+                            { value: 'mouse', label: '🖱️ Mouse' },
+                            { value: 'accessory', label: '🎧 Accessory' },
+                            { value: 'camera', label: '📷 Camera' },
+                            { value: 'printer', label: '🖨️ Printer' },
+                            { value: 'networking', label: '🔌 Networking' },
+                            { value: 'storage', label: '💾 Storage' },
+                            { value: 'other', label: '📦 Other' }
                         ]
                     },
-                    { name: 'serialNumber', label: 'Serial Number', placeholder: 'Optional' },
+                    { name: 'serialNumber', label: 'Serial Number', placeholder: 'S/N or Asset Tag', value: existingData?.serialNumber || '' },
+                    { name: 'purchaseDate', label: 'Purchase Date', type: 'date', value: existingData?.purchaseDate || '' },
+                    { name: 'warrantyExpiry', label: 'Warranty Expiry', type: 'date', value: existingData?.warrantyExpiry || '' },
+                    { name: 'purchasePrice', label: 'Purchase Price (₹)', type: 'number', placeholder: '0', value: existingData?.purchasePrice || '' },
+                    { name: 'assignedTo', label: 'Assigned To', placeholder: 'User name or department', value: existingData?.assignedTo || '' },
+                    { name: 'location', label: 'Location', placeholder: 'Office, Lab, etc.', value: existingData?.location || '' },
+                    { name: 'notes', label: 'Notes', type: 'textarea', placeholder: 'Additional details, condition, etc.', value: existingData?.notes || '' }
+                ],
+                onSubmit: async (data) => {
+                    try {
+                        const deviceData = {
+                            ...data,
+                            purchasePrice: parseFloat(data.purchasePrice) || 0,
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        };
+
+                        if (existingData?.id) {
+                            await db.collection('inventory').doc(existingData.id).update(deviceData);
+                            Utils.showToast('Device updated!', 'success');
+                        } else {
+                            deviceData.status = 'available';
+                            deviceData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+                            deviceData.createdBy = Auth.userData?.uid;
+                            await db.collection('inventory').add(deviceData);
+                            Utils.showToast('Device added to inventory!', 'success');
+                        }
+                        location.reload();
+                    } catch (error) {
+                        Utils.showToast('Error: ' + error.message, 'error');
+                    }
+                }
+            });
+        }
+
+        async function editDevice(deviceId) {
+            try {
+                const doc = await db.collection('inventory').doc(deviceId).get();
+                if (doc.exists) {
+                    const data = { id: doc.id, ...doc.data() };
+                    // Convert Firestore timestamps to date strings
+                    if (data.purchaseDate?.toDate) data.purchaseDate = data.purchaseDate.toDate().toISOString().split('T')[0];
+                    if (data.warrantyExpiry?.toDate) data.warrantyExpiry = data.warrantyExpiry.toDate().toISOString().split('T')[0];
+                    showAddDeviceModal(data);
+                }
+            } catch (error) {
+                Utils.showToast('Error loading device', 'error');
+            }
+        }
+
+        async function deleteDevice(deviceId) {
+            if (!confirm('Are you sure you want to delete this device?')) return;
+            try {
+                await db.collection('inventory').doc(deviceId).delete();
+                Utils.showToast('Device deleted', 'success');
+                location.reload();
+            } catch (error) {
+                Utils.showToast('Error deleting device', 'error');
+            }
+        }
+
+        async function cycleDeviceStatus(deviceId, currentStatus) {
+            const statusOrder = ['available', 'in-use', 'maintenance', 'retired'];
+            const currentIndex = statusOrder.indexOf(currentStatus);
+            const newStatus = statusOrder[(currentIndex + 1) % statusOrder.length];
+
+            try {
+                await db.collection('inventory').doc(deviceId).update({
+                    status: newStatus,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                Utils.showToast(`Status changed to ${newStatus}`, 'success');
+                location.reload();
+            } catch (error) {
+                Utils.showToast('Error updating status', 'error');
+            }
+        }
+
+        function showAddLicenseModal() {
+            Modal.form({
+                title: '🔑 Add Software License',
+                fields: [
+                    { name: 'name', label: 'Software Name', placeholder: 'e.g., Microsoft Office 365', required: true },
+                    { name: 'licenseKey', label: 'License Key', placeholder: 'XXXX-XXXX-XXXX-XXXX' },
+                    {
+                        name: 'type', label: 'License Type', type: 'select', options: [
+                            { value: 'subscription', label: 'Subscription' },
+                            { value: 'perpetual', label: 'Perpetual' },
+                            { value: 'trial', label: 'Trial' },
+                            { value: 'opensource', label: 'Open Source' }
+                        ]
+                    },
+                    { name: 'seats', label: 'Number of Seats', type: 'number', placeholder: '1' },
+                    { name: 'expiryDate', label: 'Expiry Date', type: 'date' },
+                    { name: 'vendor', label: 'Vendor', placeholder: 'Microsoft, Adobe, etc.' },
                     { name: 'notes', label: 'Notes', type: 'textarea', placeholder: 'Additional details...' }
                 ],
                 onSubmit: async (data) => {
                     try {
-                        await db.collection('inventory').add({
+                        await db.collection('licenses').add({
                             ...data,
-                            status: 'available',
+                            seats: parseInt(data.seats) || 1,
+                            status: 'active',
                             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                             createdBy: Auth.userData?.uid
                         });
-                        Utils.showToast('Device added to inventory!', 'success');
+                        Utils.showToast('License added successfully!', 'success');
+                        location.reload();
                     } catch (error) {
                         Utils.showToast('Error: ' + error.message, 'error');
                     }

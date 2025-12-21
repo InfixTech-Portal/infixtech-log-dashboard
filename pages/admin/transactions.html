@@ -143,6 +143,8 @@
                                             Description</th>
                                         <th style="padding: 12px; color: var(--text-muted); font-weight: 500;">Category
                                         </th>
+                                        <th style="padding: 12px; color: var(--text-muted); font-weight: 500;">Event
+                                        </th>
                                         <th style="padding: 12px; color: var(--text-muted); font-weight: 500;">Member
                                         </th>
                                         <th
@@ -173,6 +175,8 @@
     <script src="../../js/auth.js"></script>
     <script src="../../js/firestore.js"></script>
     <script src="../../js/components.js"></script>
+    <script src="../../js/notifications.js"></script>
+    <script src="../../js/reports.js"></script>
     <script src="../../js/router.js"></script>
     <script src="../../js/app.js"></script>
 
@@ -261,6 +265,12 @@
                             </span>
                         </td>
                         <td style="padding: 12px;">
+                            ${t.eventId ?
+                        `<span style="padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; background: rgba(99, 102, 241, 0.2); color: var(--primary-500);">🎯 ${t.eventName || 'Event'}</span>` :
+                        `<span class="text-muted text-sm">🌐 Common</span>`
+                    }
+                        </td>
+                        <td style="padding: 12px;">
                             ${member ? member.name : (t.memberName || '-')}
                         </td>
                         <td style="padding: 12px; text-align: right;">
@@ -322,9 +332,21 @@
             renderTransactions(filtered);
         }
 
-        function showAddTransactionModal(type = 'credit') {
+        async function showAddTransactionModal(type = 'credit') {
             const isCredit = type === 'credit';
             const memberOptions = allMembers.map(m => `<option value="${m.id}">${m.name || m.email}</option>`).join('');
+
+            // Load events for dropdown
+            let eventOptions = '<option value="">🌐 Common (No specific event)</option>';
+            try {
+                const eventsSnap = await db.collection('events').get();
+                const events = eventsSnap.docs.map(d => ({ id: d.id, ...d.data() }))
+                    .filter(e => e.isActive !== false)
+                    .sort((a, b) => (b.createdAt?.toDate?.() || 0) - (a.createdAt?.toDate?.() || 0));
+                eventOptions += events.map(e => `<option value="${e.id}" data-budget="${e.budget || 0}">🎯 ${e.name || 'Untitled Event'}</option>`).join('');
+            } catch (error) {
+                console.error('Error loading events:', error);
+            }
 
             Modal.show({
                 title: isCredit ? 'Record Credit (Money In)' : 'Record Debit (Money Out)',
@@ -373,6 +395,14 @@
                             </div>
                         </div>
 
+                        <div class="form-group" style="margin-top: 1rem; padding: 1rem; background: rgba(99, 102, 241, 0.1); border-radius: 12px; border-left: 4px solid var(--primary-500);">
+                            <label class="form-label" style="font-weight: 600;">🎯 Link to Event (Budget Tracking)</label>
+                            <select class="form-input" id="txEvent" style="margin-top: 0.5rem;">
+                                ${eventOptions}
+                            </select>
+                            <p class="text-xs text-muted" style="margin-top: 0.5rem;">Select an event to track this transaction against the event budget, or leave as Common for general transactions.</p>
+                        </div>
+
                         <div class="form-group" style="margin-top: 1rem;">
                             <label class="form-label">Description *</label>
                             <input type="text" class="form-input" id="txDescription" required placeholder="Brief description of this transaction...">
@@ -401,6 +431,9 @@
             const date = document.getElementById('txDate').value;
             const category = document.getElementById('txCategory').value;
             const memberId = document.getElementById('txMember').value;
+            const eventSelect = document.getElementById('txEvent');
+            const eventId = eventSelect?.value || '';
+            const eventName = eventId ? eventSelect.selectedOptions[0]?.textContent?.replace('🎯 ', '') : 'Common';
             const description = document.getElementById('txDescription').value.trim();
             const notes = document.getElementById('txNotes').value.trim();
             const hasReceipt = document.getElementById('txReceipt').checked;
@@ -420,6 +453,8 @@
                     category,
                     memberId: memberId || null,
                     memberName: member?.name || null,
+                    eventId: eventId || null,
+                    eventName: eventName,
                     description,
                     notes,
                     hasReceipt,

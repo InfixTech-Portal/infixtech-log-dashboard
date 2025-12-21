@@ -99,6 +99,29 @@
                                 </div>
                             </div>
 
+                            <!-- Recent Transactions (Read-Only) -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">📊 Recent Transactions</h3>
+                                    <span class="text-muted text-sm">View all team transactions</span>
+                                </div>
+                                <div class="card-body" id="transactionsList">
+                                    <p class="text-muted text-center py-4">Loading transactions...</p>
+                                </div>
+                            </div>
+
+                            <!-- Personal Logs -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">📝 My Personal Logs</h3>
+                                    <button class="btn btn-primary btn-sm" onclick="showCreatePersonalLogModal()">+ Add
+                                        Note</button>
+                                </div>
+                                <div class="card-body" id="personalLogsList">
+                                    <p class="text-muted text-center py-4">No personal logs yet</p>
+                                </div>
+                            </div>
+
                             <!-- Announcements -->
                             <div class="card">
                                 <div class="card-header">
@@ -177,6 +200,7 @@
     <script src="../js/auth.js"></script>
     <script src="../js/firestore.js"></script>
     <script src="../js/components.js"></script>
+    <script src="../js/notifications.js"></script>
     <script src="../js/router.js"></script>
     <script src="../js/app.js"></script>
 
@@ -201,6 +225,11 @@
                     Firestore.getDashboardStats(),
                     db.collection('announcements').get()
                 ]);
+
+                // Debug financial status
+                console.log('Financial Status:', finStatus);
+                console.log('Outstanding Amount:', finStatus.outstandingAmount);
+                console.log('Pending Requests:', finStatus.pendingRequests);
 
                 // Filter and sort tasks client-side
                 const myTasks = logsSnap.docs
@@ -301,10 +330,130 @@
                     </div>
                 `).join('') || '<p class="text-muted text-center py-4">No announcements</p>';
 
+                // Load Transactions (Read-Only for all members)
+                await loadTransactions();
+
+                // Load Personal Logs
+                await loadPersonalLogs(user.uid);
+
             } catch (error) {
                 console.error('Dashboard error:', error);
                 Utils.showToast('Error loading dashboard data', 'error');
             }
+        }
+
+        // Load all transactions (transparency for all members)
+        async function loadTransactions() {
+            try {
+                const transSnap = await db.collection('transactions').get();
+                const transactions = transSnap.docs
+                    .map(d => ({ id: d.id, ...d.data() }))
+                    .sort((a, b) => {
+                        const aDate = a.date?.toDate?.() || new Date(0);
+                        const bDate = b.date?.toDate?.() || new Date(0);
+                        return bDate - aDate;
+                    })
+                    .slice(0, 10);
+
+                if (transactions.length === 0) {
+                    document.getElementById('transactionsList').innerHTML = '<p class="text-muted text-center py-4">No transactions yet</p>';
+                } else {
+                    document.getElementById('transactionsList').innerHTML = transactions.map(t => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid var(--bg-glass-border);">
+                            <div>
+                                <div style="font-weight: 500;">${t.description || 'Transaction'}</div>
+                                <div class="text-xs text-muted">${t.date ? Utils.formatDate(t.date) : 'No date'} • ${t.category || 'General'}</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div class="font-bold ${t.type === 'credit' ? 'text-success' : 'text-danger'}">
+                                    ${t.type === 'credit' ? '+' : '-'}${Utils.formatCurrency(t.amount || 0)}
+                                </div>
+                                <div class="text-xs text-muted">${t.type === 'credit' ? 'Income' : 'Expense'}</div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading transactions:', error);
+                document.getElementById('transactionsList').innerHTML = '<p class="text-muted text-center py-4">Error loading transactions</p>';
+            }
+        }
+
+        // Load personal logs for current user
+        async function loadPersonalLogs(userId) {
+            try {
+                const logsSnap = await db.collection('logs').get();
+                const personalLogs = logsSnap.docs
+                    .map(d => ({ id: d.id, ...d.data() }))
+                    .filter(log => log.type === 'personal_note' && log.createdBy === userId)
+                    .sort((a, b) => {
+                        const aDate = a.createdAt?.toDate?.() || new Date(0);
+                        const bDate = b.createdAt?.toDate?.() || new Date(0);
+                        return bDate - aDate;
+                    })
+                    .slice(0, 5);
+
+                if (personalLogs.length === 0) {
+                    document.getElementById('personalLogsList').innerHTML = '<p class="text-muted text-center py-4">No personal logs yet. Click + Add Note to create one.</p>';
+                } else {
+                    document.getElementById('personalLogsList').innerHTML = personalLogs.map(log => `
+                        <div style="padding: 0.75rem 0; border-bottom: 1px solid var(--bg-glass-border);">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600;">${log.data?.title || 'Note'}</div>
+                                    <div class="text-sm text-muted" style="margin-top: 0.25rem;">${log.data?.content || ''}</div>
+                                    <div class="text-xs text-muted" style="margin-top: 0.25rem;">${Utils.timeAgo(log.createdAt)}</div>
+                                </div>
+                                <button class="btn btn-ghost btn-sm" onclick="deletePersonalLog('${log.id}')" title="Delete">🗑️</button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading personal logs:', error);
+            }
+        }
+
+        // Create personal log modal
+        function showCreatePersonalLogModal() {
+            Modal.form({
+                title: 'Create Personal Note',
+                fields: [
+                    { name: 'title', label: 'Title', placeholder: 'e.g., Meeting notes, Ideas, Goals...', required: true },
+                    { name: 'content', label: 'Content', type: 'textarea', placeholder: 'Write your note here...', required: true }
+                ],
+                onSubmit: async (data) => {
+                    try {
+                        await db.collection('logs').add({
+                            type: 'personal_note',
+                            data: {
+                                title: data.title,
+                                content: data.content
+                            },
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            createdBy: Auth.userData.uid,
+                            createdByName: Auth.userData.name || Auth.userData.email
+                        });
+                        Utils.showToast('Personal note created!', 'success');
+                        await loadPersonalLogs(Auth.userData.uid);
+                    } catch (error) {
+                        Utils.showToast('Error creating note: ' + error.message, 'error');
+                    }
+                }
+            });
+        }
+
+        // Delete personal log
+        async function deletePersonalLog(logId) {
+            Modal.confirm('Delete this personal note?', async () => {
+                try {
+                    await db.collection('logs').doc(logId).delete();
+                    Utils.showToast('Note deleted', 'success');
+                    await loadPersonalLogs(Auth.userData.uid);
+                } catch (error) {
+                    Utils.showToast('Error deleting note: ' + error.message, 'error');
+                }
+            });
         }
 
         async function toggleTask(taskId, currentStatus) {

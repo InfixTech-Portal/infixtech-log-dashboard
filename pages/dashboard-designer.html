@@ -89,47 +89,11 @@
                             <div class="card">
                                 <div class="card-header">
                                     <h3 class="card-title">Design Requests</h3>
+                                    <button class="btn btn-ghost btn-sm" onclick="showUploadDesignModal()">+
+                                        Upload</button>
                                 </div>
                                 <div class="card-body" id="requestsList">
-                                    <div style="display: flex; flex-direction: column; gap: 1rem;">
-                                        <div
-                                            style="padding: 1rem; background: rgba(236, 72, 153, 0.1); border-radius: 12px; border-left: 4px solid var(--warning-500);">
-                                            <div
-                                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                                                <span style="font-weight: 600;">Event Poster - Hackathon 2025</span>
-                                                <span
-                                                    style="padding: 4px 12px; background: var(--warning-500); color: white; border-radius: 20px; font-size: 0.75rem;">In
-                                                    Progress</span>
-                                            </div>
-                                            <p class="text-sm text-muted">Create an engaging poster for the upcoming
-                                                hackathon. Use vibrant colors and tech elements.</p>
-                                            <div class="text-xs text-muted mt-2">Due: Dec 25</div>
-                                        </div>
-                                        <div
-                                            style="padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 12px; border-left: 4px solid var(--primary-500);">
-                                            <div
-                                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                                                <span style="font-weight: 600;">Social Media Template</span>
-                                                <span
-                                                    style="padding: 4px 12px; background: var(--primary-500); color: white; border-radius: 20px; font-size: 0.75rem;">Pending</span>
-                                            </div>
-                                            <p class="text-sm text-muted">Design reusable templates for Instagram and
-                                                LinkedIn posts.</p>
-                                            <div class="text-xs text-muted mt-2">Due: Dec 28</div>
-                                        </div>
-                                        <div
-                                            style="padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 12px; border-left: 4px solid var(--success-500);">
-                                            <div
-                                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                                                <span style="font-weight: 600;">Team Logo Variants</span>
-                                                <span
-                                                    style="padding: 4px 12px; background: var(--success-500); color: white; border-radius: 20px; font-size: 0.75rem;">Completed</span>
-                                            </div>
-                                            <p class="text-sm text-muted">Created light/dark mode variants and icon
-                                                versions.</p>
-                                            <div class="text-xs text-muted mt-2">Completed: Dec 15</div>
-                                        </div>
-                                    </div>
+                                    <p class="text-muted text-center py-4">Loading design requests...</p>
                                 </div>
                             </div>
 
@@ -138,21 +102,8 @@
                                 <div class="card-header">
                                     <h3 class="card-title">Recent Assets</h3>
                                 </div>
-                                <div class="card-body">
-                                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
-                                        <div
-                                            style="aspect-ratio: 1; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 2rem;">
-                                            🎨</div>
-                                        <div
-                                            style="aspect-ratio: 1; background: linear-gradient(135deg, #ec4899, #f97316); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 2rem;">
-                                            🖼️</div>
-                                        <div
-                                            style="aspect-ratio: 1; background: linear-gradient(135deg, #10b981, #3b82f6); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 2rem;">
-                                            📊</div>
-                                        <div
-                                            style="aspect-ratio: 1; background: linear-gradient(135deg, #f59e0b, #ef4444); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 2rem;">
-                                            🏆</div>
-                                    </div>
+                                <div class="card-body" id="assetGallery">
+                                    <p class="text-muted text-center py-4">Loading assets...</p>
                                 </div>
                             </div>
 
@@ -168,74 +119,85 @@
                             </div>
                         </div>
 
-                        <!-- Right Column -->
-                        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-                            <!-- Quick Actions -->
-                            <div class="card">
-                                <div class="card-header">
-                                    <h3 class="card-title">Quick Actions</h3>
-                                </div>
-                                <div class="card-body" style="display: flex; flex-direction: column; gap: 0.5rem;">
-                                    <button class="btn btn-secondary" style="justify-content: flex-start;"
-                                        onclick="showUploadDesignModal()">🎨 Upload Design</button>
-                                    <button class="btn btn-secondary" style="justify-content: flex-start;"
-                                        onclick="showRequestFeedbackModal()">💬 Request Feedback</button>
-                                    <a href="logs/task-logs.html" class="btn btn-secondary"
-                                        style="justify-content: flex-start;">✅ View Tasks</a>
-                                    <a href="logs/event-logs.html" class="btn btn-secondary"
-                                        style="justify-content: flex-start;">🏆 Events</a>
-                                    <a href="profile.html" class="btn btn-secondary"
-                                        style="justify-content: flex-start;">👤 Profile</a>
+                        <!-- Recent Transactions (Team Transparency) -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">📊 Recent Transactions</h3>
+                                <span class="text-muted text-sm">Team financial transparency</span>
+                            </div>
+                            <div class="card-body" id="transactionsList">
+                                <p class="text-muted text-center py-4">Loading transactions...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column -->
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        <!-- Quick Actions -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Quick Actions</h3>
+                            </div>
+                            <div class="card-body" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                <button class="btn btn-secondary" style="justify-content: flex-start;"
+                                    onclick="showUploadDesignModal()">🎨 Upload Design</button>
+                                <button class="btn btn-secondary" style="justify-content: flex-start;"
+                                    onclick="showRequestFeedbackModal()">💬 Request Feedback</button>
+                                <a href="logs/task-logs.html" class="btn btn-secondary"
+                                    style="justify-content: flex-start;">✅ View Tasks</a>
+                                <a href="logs/event-logs.html" class="btn btn-secondary"
+                                    style="justify-content: flex-start;">🏆 Events</a>
+                                <a href="profile.html" class="btn btn-secondary" style="justify-content: flex-start;">👤
+                                    Profile</a>
+                            </div>
+                        </div>
+
+                        <!-- Design Tools -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Design Tools</h3>
+                            </div>
+                            <div class="card-body">
+                                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                    <a href="https://www.figma.com" target="_blank"
+                                        style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: rgba(255,255,255,0.05); border-radius: 8px; text-decoration: none; color: inherit;">
+                                        <span>🎨</span><span>Figma</span>
+                                    </a>
+                                    <a href="https://www.canva.com" target="_blank"
+                                        style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: rgba(255,255,255,0.05); border-radius: 8px; text-decoration: none; color: inherit;">
+                                        <span>🖼️</span><span>Canva</span>
+                                    </a>
+                                    <a href="https://www.photopea.com" target="_blank"
+                                        style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: rgba(255,255,255,0.05); border-radius: 8px; text-decoration: none; color: inherit;">
+                                        <span>🎭</span><span>Photopea</span>
+                                    </a>
+                                    <a href="https://coolors.co" target="_blank"
+                                        style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: rgba(255,255,255,0.05); border-radius: 8px; text-decoration: none; color: inherit;">
+                                        <span>🌈</span><span>Coolors</span>
+                                    </a>
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- Design Tools -->
-                            <div class="card">
-                                <div class="card-header">
-                                    <h3 class="card-title">Design Tools</h3>
-                                </div>
-                                <div class="card-body">
-                                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                                        <a href="https://www.figma.com" target="_blank"
-                                            style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: rgba(255,255,255,0.05); border-radius: 8px; text-decoration: none; color: inherit;">
-                                            <span>🎨</span><span>Figma</span>
-                                        </a>
-                                        <a href="https://www.canva.com" target="_blank"
-                                            style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: rgba(255,255,255,0.05); border-radius: 8px; text-decoration: none; color: inherit;">
-                                            <span>🖼️</span><span>Canva</span>
-                                        </a>
-                                        <a href="https://www.photopea.com" target="_blank"
-                                            style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: rgba(255,255,255,0.05); border-radius: 8px; text-decoration: none; color: inherit;">
-                                            <span>🎭</span><span>Photopea</span>
-                                        </a>
-                                        <a href="https://coolors.co" target="_blank"
-                                            style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: rgba(255,255,255,0.05); border-radius: 8px; text-decoration: none; color: inherit;">
-                                            <span>🌈</span><span>Coolors</span>
-                                        </a>
-                                    </div>
-                                </div>
+                        <!-- Inspiration -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Inspiration</h3>
                             </div>
-
-                            <!-- Inspiration -->
-                            <div class="card">
-                                <div class="card-header">
-                                    <h3 class="card-title">Inspiration</h3>
-                                </div>
-                                <div class="card-body">
-                                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                                        <a href="https://dribbble.com" target="_blank"
-                                            style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: rgba(255,255,255,0.05); border-radius: 8px; text-decoration: none; color: inherit;">
-                                            <span>🏀</span><span>Dribbble</span>
-                                        </a>
-                                        <a href="https://www.behance.net" target="_blank"
-                                            style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: rgba(255,255,255,0.05); border-radius: 8px; text-decoration: none; color: inherit;">
-                                            <span>🅱️</span><span>Behance</span>
-                                        </a>
-                                        <a href="https://www.pinterest.com" target="_blank"
-                                            style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: rgba(255,255,255,0.05); border-radius: 8px; text-decoration: none; color: inherit;">
-                                            <span>📌</span><span>Pinterest</span>
-                                        </a>
-                                    </div>
+                            <div class="card-body">
+                                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                    <a href="https://dribbble.com" target="_blank"
+                                        style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: rgba(255,255,255,0.05); border-radius: 8px; text-decoration: none; color: inherit;">
+                                        <span>🏀</span><span>Dribbble</span>
+                                    </a>
+                                    <a href="https://www.behance.net" target="_blank"
+                                        style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: rgba(255,255,255,0.05); border-radius: 8px; text-decoration: none; color: inherit;">
+                                        <span>🅱️</span><span>Behance</span>
+                                    </a>
+                                    <a href="https://www.pinterest.com" target="_blank"
+                                        style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: rgba(255,255,255,0.05); border-radius: 8px; text-decoration: none; color: inherit;">
+                                        <span>📌</span><span>Pinterest</span>
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -243,6 +205,7 @@
                 </div>
             </div>
         </div>
+    </div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -253,6 +216,7 @@
     <script src="../js/auth.js"></script>
     <script src="../js/firestore.js"></script>
     <script src="../js/components.js"></script>
+    <script src="../js/notifications.js"></script>
     <script src="../js/router.js"></script>
     <script src="../js/app.js"></script>
 
@@ -295,10 +259,50 @@
                         <span class="${t.data?.status === 'completed' ? 'text-success' : 'text-warning'}">${t.data?.status || 'pending'}</span>
                     </div>
                 `).join('') || '<p class="text-muted text-center py-4">No tasks assigned</p>';
+
+                // Load transactions for transparency
+                await loadTransactions();
             } catch (error) {
-                console.error('Error:', error);
+                console.error('Dashboard error:', error);
             }
         });
+
+        // Load all transactions (transparency for all members)
+        async function loadTransactions() {
+            try {
+                const transSnap = await db.collection('transactions').get();
+                const transactions = transSnap.docs
+                    .map(d => ({ id: d.id, ...d.data() }))
+                    .sort((a, b) => {
+                        const aDate = a.date?.toDate?.() || new Date(0);
+                        const bDate = b.date?.toDate?.() || new Date(0);
+                        return bDate - aDate;
+                    })
+                    .slice(0, 10);
+
+                if (transactions.length === 0) {
+                    document.getElementById('transactionsList').innerHTML = '<p class="text-muted text-center py-4">No transactions yet</p>';
+                } else {
+                    document.getElementById('transactionsList').innerHTML = transactions.map(t => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid var(--bg-glass-border);">
+                            <div>
+                                <div style="font-weight: 500;">${t.description || 'Transaction'}</div>
+                                <div class="text-xs text-muted">${t.date ? Utils.formatDate(t.date) : 'No date'} • ${t.category || 'General'}</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div class="font-bold ${t.type === 'credit' ? 'text-success' : 'text-danger'}">
+                                    ${t.type === 'credit' ? '+' : '-'}${Utils.formatCurrency(t.amount || 0)}
+                                </div>
+                                <div class="text-xs text-muted">${t.type === 'credit' ? 'Income' : 'Expense'}</div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading transactions:', error);
+                document.getElementById('transactionsList').innerHTML = '<p class="text-muted text-center py-4">Error loading transactions</p>';
+            }
+        }
 
         function showUploadDesignModal() {
             Modal.form({

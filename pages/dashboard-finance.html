@@ -151,8 +151,6 @@
                                         onclick="showRecordPaymentModal()">✓ Record Payment</button>
                                     <a href="admin/transactions.html" class="btn btn-secondary"
                                         style="justify-content: flex-start;">💳 Transaction Manager</a>
-                                    <a href="admin/members.html" class="btn btn-secondary"
-                                        style="justify-content: flex-start;">👥 Member Management</a>
                                     <a href="logs/payment-logs.html" class="btn btn-secondary"
                                         style="justify-content: flex-start;">📋 Payment Logs</a>
                                     <button class="btn btn-primary" onclick="downloadReport()">📄 Download
@@ -167,6 +165,16 @@
                                 </div>
                                 <div class="card-body" id="membersDues" style="max-height: 300px; overflow-y: auto;">
                                     <p class="text-muted text-center py-4">Loading...</p>
+                                </div>
+                            </div>
+
+                            <!-- Event Budget Tracking -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">🎯 Event Budget Tracking</h3>
+                                </div>
+                                <div class="card-body" id="eventBudgets" style="max-height: 350px; overflow-y: auto;">
+                                    <p class="text-muted text-center py-4">Loading event budgets...</p>
                                 </div>
                             </div>
                         </div>
@@ -188,6 +196,7 @@
     <script src="../js/firestore.js"></script>
     <script src="../js/components.js"></script>
     <script src="../js/reports.js"></script>
+    <script src="../js/notifications.js"></script>
     <script src="../js/router.js"></script>
     <script src="../js/app.js"></script>
 
@@ -311,6 +320,9 @@
                 }).join('');
                 document.getElementById('membersDues').innerHTML = duesHtml || '<p class="text-muted text-center py-4">No pending dues</p>';
 
+                // Load Event Budget Tracking
+                await loadEventBudgets();
+
                 // Recent Payments (using already filtered payments from above)
                 document.getElementById('recentPayments').innerHTML = payments.map(p => `
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid var(--bg-glass-border);">
@@ -325,6 +337,85 @@
             } catch (error) {
                 console.error('Finance error:', error);
                 Utils.showToast('Error loading finance data', 'error');
+            }
+        }
+
+        async function loadEventBudgets() {
+            try {
+                // Load events and transactions
+                const [eventsSnap, transSnap] = await Promise.all([
+                    db.collection('events').get(),
+                    db.collection('transactions').get()
+                ]);
+
+                const events = eventsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                const transactions = transSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+                console.log('📊 Event Budget Debug:', {
+                    eventsCount: events.length,
+                    transactionsCount: transactions.length,
+                    transactionsWithEvents: transactions.filter(t => t.eventId).length
+                });
+
+                // Calculate spending per event
+                const eventSpending = {};
+                const eventIncome = {};
+                const eventTransCount = {};
+
+                transactions.forEach(t => {
+                    if (t.eventId) {
+                        eventTransCount[t.eventId] = (eventTransCount[t.eventId] || 0) + 1;
+                        if (t.type === 'debit') {
+                            eventSpending[t.eventId] = (eventSpending[t.eventId] || 0) + (t.amount || 0);
+                        } else {
+                            eventIncome[t.eventId] = (eventIncome[t.eventId] || 0) + (t.amount || 0);
+                        }
+                    }
+                });
+
+                // Render event budgets
+                if (events.length === 0) {
+                    document.getElementById('eventBudgets').innerHTML = '<p class="text-muted text-center py-4">No events found. Create events first.</p>';
+                    return;
+                }
+
+                document.getElementById('eventBudgets').innerHTML = events.map(event => {
+                    const budget = event.budget || 0;
+                    const spent = eventSpending[event.id] || 0;
+                    const income = eventIncome[event.id] || 0;
+                    const transCount = eventTransCount[event.id] || 0;
+                    const remaining = budget - spent;
+                    const usedPercent = budget > 0 ? Math.min(100, Math.round((spent / budget) * 100)) : 0;
+                    const isOverBudget = spent > budget && budget > 0;
+
+                    return `
+                        <div style="padding: 0.75rem; margin-bottom: 0.75rem; background: var(--bg-glass); border-radius: 12px; border-left: 4px solid ${isOverBudget ? 'var(--danger-500)' : usedPercent > 80 ? 'var(--warning-500)' : 'var(--success-500)'}; ${transCount > 0 ? '' : 'opacity: 0.7;'}">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                <div style="font-weight: 600;">🎯 ${event.name || 'Untitled Event'}</div>
+                                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                    ${transCount > 0 ? `<span class="text-xs text-muted">${transCount} txns</span>` : ''}
+                                    <span class="badge ${isOverBudget ? 'badge-danger' : transCount > 0 ? (usedPercent > 80 ? 'badge-warning' : 'badge-success') : 'badge-secondary'}">
+                                        ${transCount === 0 ? 'No transactions' : (budget > 0 ? (isOverBudget ? 'Over!' : usedPercent + '%') : 'No Budget')}
+                                    </span>
+                                </div>
+                            </div>
+                            ${budget > 0 ? `
+                                <div style="height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; margin-bottom: 0.5rem;">
+                                    <div style="height: 100%; width: ${usedPercent}%; background: ${isOverBudget ? 'var(--danger-500)' : usedPercent > 80 ? 'var(--warning-500)' : 'var(--success-500)'}; transition: width 0.3s;"></div>
+                                </div>
+                            ` : ''}
+                            <div style="display: flex; justify-content: space-between; font-size: 0.85rem; flex-wrap: wrap; gap: 0.25rem;">
+                                <span>💰 Budget: <strong>${budget > 0 ? Utils.formatCurrency(budget) : 'Not Set'}</strong></span>
+                                <span>📉 Spent: <strong class="${isOverBudget ? 'text-danger' : ''}">${Utils.formatCurrency(spent)}</strong></span>
+                                ${budget > 0 ? `<span>📊 Left: <strong class="${remaining < 0 ? 'text-danger' : 'text-success'}">${Utils.formatCurrency(remaining)}</strong></span>` : ''}
+                            </div>
+                            ${income > 0 ? `<div class="text-xs text-success" style="margin-top: 0.25rem;">📈 Income: ${Utils.formatCurrency(income)}</div>` : ''}
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Error loading event budgets:', error);
+                document.getElementById('eventBudgets').innerHTML = '<p class="text-danger text-center py-4">Error loading event budgets</p>';
             }
         }
 

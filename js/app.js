@@ -45,12 +45,20 @@ const App = {
             },
         ];
 
-        if (isLeader || roles.includes('finance')) {
+        if (isLeader) {
+            // Leader gets full admin access
             navItems.push({
                 section: 'Admin', items: [
                     { icon: '👥', label: 'Members', href: `${prefix}pages/admin/members.html`, active: currentPath.includes('/members') },
                     { icon: '💳', label: 'Transactions', href: `${prefix}pages/admin/transactions.html`, active: currentPath.includes('transactions') },
                     { icon: '🏆', label: 'Events', href: `${prefix}pages/admin/events.html`, active: currentPath.includes('/events') || currentPath.includes('event-details') },
+                ]
+            });
+        } else if (roles.includes('finance')) {
+            // Finance only gets transaction access
+            navItems.push({
+                section: 'Admin', items: [
+                    { icon: '💳', label: 'Transactions', href: `${prefix}pages/admin/transactions.html`, active: currentPath.includes('transactions') },
                 ]
             });
         }
@@ -113,6 +121,13 @@ const App = {
         };
         updateTime();
         setInterval(updateTime, 60000);
+
+        // Initialize notifications after header is rendered
+        setTimeout(() => {
+            if (window.Notifications && Auth.currentUser) {
+                Notifications.init();
+            }
+        }, 100);
     },
 
     // Show loading overlay

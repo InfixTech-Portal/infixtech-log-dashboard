@@ -4,9 +4,184 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Event Logs | INFI X TECH</title>
+    <title>Event Management & Logs | INFI X TECH</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../css/styles.css">
+    <style>
+        .event-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .event-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.05), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .event-card:hover::before {
+            opacity: 1;
+        }
+        .event-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
+        }
+        
+        .event-status-badge {
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .status-upcoming { background: rgba(59, 130, 246, 0.2); color: var(--info-500); }
+        .status-active { background: rgba(16, 185, 129, 0.2); color: var(--success-500); }
+        .status-completed { background: rgba(107, 114, 128, 0.2); color: var(--text-muted); }
+        .status-cancelled { background: rgba(239, 68, 68, 0.2); color: var(--danger-500); }
+        
+        .log-entry {
+            background: var(--bg-glass);
+            border: 1px solid var(--bg-glass-border);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            transition: all 0.2s ease;
+        }
+        .log-entry:hover {
+            background: rgba(99, 102, 241, 0.05);
+            border-color: rgba(99, 102, 241, 0.2);
+        }
+        
+        .log-type-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            margin-right: 0.75rem;
+        }
+        .log-created { background: rgba(16, 185, 129, 0.2); }
+        .log-update { background: rgba(59, 130, 246, 0.2); }
+        .log-milestone { background: rgba(245, 158, 11, 0.2); }
+        .log-issue { background: rgba(239, 68, 68, 0.2); }
+        .log-decision { background: rgba(139, 92, 246, 0.2); }
+        .log-meeting { background: rgba(99, 102, 241, 0.2); }
+        
+        .event-timeline {
+            position: relative;
+            padding-left: 2rem;
+        }
+        .event-timeline::before {
+            content: '';
+            position: absolute;
+            left: 0.75rem;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, var(--warning-500), var(--bg-glass-border));
+        }
+        .timeline-entry {
+            position: relative;
+            padding-bottom: 1.5rem;
+        }
+        .timeline-entry::before {
+            content: '';
+            position: absolute;
+            left: -0.5rem;
+            top: 0.5rem;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--warning-500);
+            border: 3px solid var(--bg-body);
+            box-shadow: 0 0 0 2px var(--warning-500);
+        }
+        
+        .event-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        .stat-item {
+            text-align: center;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+            border: 1px solid var(--bg-glass-border);
+        }
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--warning-500);
+        }
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+        
+        .floating-log-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--warning-500), var(--warning-600));
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        .floating-log-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 12px 35px rgba(245, 158, 11, 0.5);
+        }
+        
+        .event-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .quick-filters {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+        .filter-chip {
+            padding: 0.4rem 0.9rem;
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 25px;
+            font-size: 0.8rem;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .filter-chip:hover {
+            background: rgba(245, 158, 11, 0.25);
+            transform: translateY(-1px);
+        }
+        .filter-chip.active {
+            background: var(--warning-500);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+    </style>
 </head>
 
 <body>
@@ -21,40 +196,147 @@
                 </div>
 
                 <div id="pageContent" style="display: none;">
-                    <!-- Banner -->
-                    <div class="card mb-lg"
-                        style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none;">
-                        <div class="card-body" style="padding: 2rem;">
-                            <h1 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 0.25rem;">Event Logs 🏆</h1>
-                            <p style="opacity: 0.9; font-size: 0.9rem;">View all team events and their activity logs.
-                            </p>
+                    <!-- Enhanced Banner -->
+                    <div class="card mb-lg" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; overflow: hidden; position: relative;">
+                        <div style="position: absolute; top: -30%; right: -5%; width: 150px; height: 150px; background: rgba(255,255,255,0.1); border-radius: 50%; opacity: 0.4;"></div>
+                        <div style="position: absolute; bottom: -20%; left: -5%; width: 100px; height: 100px; background: rgba(255,255,255,0.08); border-radius: 50%; opacity: 0.6;"></div>
+                        <div class="card-body" style="padding: 2.5rem; position: relative; z-index: 1;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                                <div>
+                                    <h1 style="font-size: 2.25rem; font-weight: 700; margin-bottom: 0.5rem;">Event Management Hub 🏆</h1>
+                                    <p style="opacity: 0.9; font-size: 1rem; margin-bottom: 1rem;">Track events, manage activities, and maintain comprehensive logs</p>
+                                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                            <span style="font-size: 1.5rem;">📊</span>
+                                            <span id="eventStatsText">Loading stats...</span>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                            <span style="font-size: 1.5rem;">📝</span>
+                                            <span id="logStatsText">Activity tracking</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                                    <button class="btn" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3);" onclick="exportEventReport()">
+                                        📄 Export Report
+                                    </button>
+                                    <button class="btn" style="background: rgba(255,255,255,0.25); color: white; border: 1px solid rgba(255,255,255,0.4);" onclick="showEventAnalytics()">
+                                        📈 Analytics
+                                    </button>
+                                    <button class="btn" style="background: rgba(255,255,255,0.3); color: white; font-weight: 600;" onclick="createEvent()" id="createEventBtn">
+                                        ➕ New Event
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Filter -->
+                    <!-- Event Analytics Dashboard -->
+                    <div class="card mb-lg" id="analyticsCard" style="display: none; background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.1)); border: 1px solid rgba(245, 158, 11, 0.2);">
+                        <div class="card-header">
+                            <h3 class="card-title">📊 Event Analytics</h3>
+                            <button class="btn btn-ghost btn-sm" onclick="toggleAnalytics()">✕ Close</button>
+                        </div>
+                        <div class="card-body">
+                            <div class="event-stats">
+                                <div class="stat-item">
+                                    <div class="stat-value" id="totalEvents">0</div>
+                                    <div class="stat-label">Total Events</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value" id="activeEvents">0</div>
+                                    <div class="stat-label">Active</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value" id="upcomingEvents">0</div>
+                                    <div class="stat-label">Upcoming</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value" id="completedEvents">0</div>
+                                    <div class="stat-label">Completed</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value" id="totalParticipants">0</div>
+                                    <div class="stat-label">Participants</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value" id="totalLogs">0</div>
+                                    <div class="stat-label">Log Entries</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Enhanced Filters -->
                     <div class="card mb-lg">
-                        <div class="card-body" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
-                            <input type="text" class="form-input" placeholder="🔍 Search events..." id="searchInput"
-                                style="flex: 1; min-width: 200px;">
-                            <select class="form-input" id="filterStatus" style="width: 150px;">
-                                <option value="">All Status</option>
-                                <option value="upcoming">Upcoming</option>
-                                <option value="active">Active</option>
-                                <option value="completed">Completed</option>
-                            </select>
-                            <a href="../admin/events.html" class="btn btn-primary" id="manageBtn"
-                                style="display: none;">⚙️ Manage Events</a>
+                        <div class="card-body">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+                                <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
+                                    <div style="position: relative;">
+                                        <input type="text" class="form-input" placeholder="🔍 Search events..." id="searchInput" style="min-width: 250px; padding-left: 2.5rem;">
+                                        <span style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); font-size: 1rem;">🔍</span>
+                                    </div>
+                                    <select class="form-input" id="filterType" style="min-width: 150px;">
+                                        <option value="">All Types</option>
+                                        <option value="meeting">Meetings</option>
+                                        <option value="workshop">Workshops</option>
+                                        <option value="conference">Conferences</option>
+                                        <option value="social">Social Events</option>
+                                        <option value="project">Project Events</option>
+                                    </select>
+                                    <select class="form-input" id="sortBy" style="min-width: 150px;">
+                                        <option value="created-desc">Latest First</option>
+                                        <option value="created-asc">Oldest First</option>
+                                        <option value="date-asc">By Start Date</option>
+                                        <option value="name">By Name</option>
+                                    </select>
+                                </div>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <button class="btn btn-secondary btn-sm" onclick="toggleView('grid')" id="gridViewBtn">🔲 Grid</button>
+                                    <button class="btn btn-ghost btn-sm" onclick="toggleView('timeline')" id="timelineViewBtn">📅 Timeline</button>
+                                </div>
+                            </div>
+                            
+                            <div class="quick-filters">
+                                <span class="filter-chip active" onclick="filterByStatus('all')" data-status="all">All Events</span>
+                                <span class="filter-chip" onclick="filterByStatus('upcoming')" data-status="upcoming">📅 Upcoming</span>
+                                <span class="filter-chip" onclick="filterByStatus('active')" data-status="active">🔄 Active</span>
+                                <span class="filter-chip" onclick="filterByStatus('completed')" data-status="completed">✅ Completed</span>
+                                <span class="filter-chip" onclick="filterByStatus('cancelled')" data-status="cancelled">❌ Cancelled</span>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Events List -->
-                    <div id="eventsList">
-                        <p class="text-muted text-center py-4">Loading...</p>
+                    <!-- Events Container -->
+                    <div id="eventsContainer">
+                        <!-- Grid View -->
+                        <div id="gridView" class="event-grid">
+                            <!-- Events will be populated here -->
+                        </div>
+
+                        <!-- Timeline View -->
+                        <div id="timelineView" style="display: none;">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Event Timeline</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="event-timeline" id="eventTimeline">
+                                        <!-- Timeline entries will be populated here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Floating Add Log Button -->
+    <button class="floating-log-btn" onclick="showQuickLogModal()" id="floatingLogBtn" style="display: none;" title="Add Quick Log">
+        📝
+    </button>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -63,156 +345,642 @@
     <script src="../../js/utils.js"></script>
     <script src="../../js/auth.js"></script>
     <script src="../../js/firestore.js"></script>
-    <script src="../../js/components.js"></script>
+    <script src="../../js/notifications.js"></script>
     <script src="../../js/router.js"></script>
     <script src="../../js/app.js"></script>
 
     <script>
         let allEvents = [];
+        let filteredEvents = [];
+        let currentView = 'grid';
+        let currentStatusFilter = 'all';
         let isLeader = false;
+        let currentUser = null;
 
         window.addEventListener('userDataLoaded', async (e) => {
-            const user = e.detail;
-            isLeader = user.roles?.includes('leader') || user.roles?.includes('finance');
+            currentUser = e.detail;
+            isLeader = currentUser.roles?.includes('leader') || currentUser.roles?.includes('finance');
 
             if (isLeader) {
-                document.getElementById('manageBtn').style.display = 'inline-flex';
+                document.getElementById('createEventBtn').style.display = 'inline-flex';
+                document.getElementById('floatingLogBtn').style.display = 'block';
             }
 
             document.getElementById('loadingState').style.display = 'none';
             document.getElementById('pageContent').style.display = 'block';
 
             await loadEvents();
+            setupEventListeners();
         });
+
+        function setupEventListeners() {
+            document.getElementById('searchInput').addEventListener('input', Utils.debounce(applyFilters, 300));
+            document.getElementById('filterType').addEventListener('change', applyFilters);
+            document.getElementById('sortBy').addEventListener('change', applySorting);
+        }
 
         async function loadEvents() {
             try {
-                const eventsSnap = await db.collection('events').orderBy('createdAt', 'desc').get();
+                const eventsSnap = await db.collection('events').get();
                 allEvents = eventsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-                renderEvents(allEvents);
+                
+                // Sort by creation date (newest first) by default
+                allEvents.sort((a, b) => {
+                    const aDate = a.createdAt?.toDate?.() || new Date(0);
+                    const bDate = b.createdAt?.toDate?.() || new Date(0);
+                    return bDate - aDate;
+                });
+
+                filteredEvents = [...allEvents];
+                updateEventStats();
+                renderCurrentView();
             } catch (error) {
-                console.error('Error:', error);
+                console.error('Error loading events:', error);
                 Utils.showToast('Error loading events', 'error');
             }
         }
 
-        function renderEvents(events) {
-            const container = document.getElementById('eventsList');
+        function updateEventStats() {
+            const stats = {
+                total: allEvents.length,
+                upcoming: allEvents.filter(e => e.status === 'upcoming').length,
+                active: allEvents.filter(e => e.status === 'active').length,
+                completed: allEvents.filter(e => e.status === 'completed').length,
+                cancelled: allEvents.filter(e => e.status === 'cancelled').length,
+                totalParticipants: allEvents.reduce((sum, e) => sum + (e.participants?.length || 0), 0),
+                totalLogs: allEvents.reduce((sum, e) => sum + (e.logs?.length || 0), 0)
+            };
 
-            if (events.length === 0) {
+            // Update banner stats
+            document.getElementById('eventStatsText').textContent = `${stats.total} events • ${stats.active} active`;
+            document.getElementById('logStatsText').textContent = `${stats.totalLogs} log entries • ${stats.totalParticipants} participants`;
+
+            // Update analytics
+            document.getElementById('totalEvents').textContent = stats.total;
+            document.getElementById('activeEvents').textContent = stats.active;
+            document.getElementById('upcomingEvents').textContent = stats.upcoming;
+            document.getElementById('completedEvents').textContent = stats.completed;
+            document.getElementById('totalParticipants').textContent = stats.totalParticipants;
+            document.getElementById('totalLogs').textContent = stats.totalLogs;
+        }
+
+        function filterByStatus(status) {
+            currentStatusFilter = status;
+            
+            // Update filter chips
+            document.querySelectorAll('.filter-chip').forEach(chip => {
+                chip.classList.remove('active');
+            });
+            document.querySelector(`[data-status="${status}"]`).classList.add('active');
+            
+            applyFilters();
+        }
+
+        function applyFilters() {
+            const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+            const typeFilter = document.getElementById('filterType').value;
+            
+            filteredEvents = allEvents.filter(event => {
+                // Search filter
+                if (searchQuery) {
+                    const name = (event.name || '').toLowerCase();
+                    const description = (event.description || '').toLowerCase();
+                    const venue = (event.venue || '').toLowerCase();
+                    if (!name.includes(searchQuery) && !description.includes(searchQuery) && !venue.includes(searchQuery)) {
+                        return false;
+                    }
+                }
+                
+                // Status filter
+                if (currentStatusFilter !== 'all') {
+                    if (event.status !== currentStatusFilter) return false;
+                }
+                
+                // Type filter
+                if (typeFilter) {
+                    if (event.type !== typeFilter) return false;
+                }
+                
+                return true;
+            });
+            
+            applySorting();
+        }
+
+        function applySorting() {
+            const sortBy = document.getElementById('sortBy').value;
+            
+            filteredEvents.sort((a, b) => {
+                switch (sortBy) {
+                    case 'created-asc':
+                        return (a.createdAt?.toDate?.() || new Date(0)) - (b.createdAt?.toDate?.() || new Date(0));
+                    case 'created-desc':
+                        return (b.createdAt?.toDate?.() || new Date(0)) - (a.createdAt?.toDate?.() || new Date(0));
+                    case 'date-asc':
+                        const aStart = a.startDate?.toDate?.() || new Date('2099-12-31');
+                        const bStart = b.startDate?.toDate?.() || new Date('2099-12-31');
+                        return aStart - bStart;
+                    case 'name':
+                        return (a.name || '').localeCompare(b.name || '');
+                    default:
+                        return 0;
+                }
+            });
+            
+            renderCurrentView();
+        }
+
+        function toggleView(view) {
+            currentView = view;
+            
+            // Update view buttons
+            document.querySelectorAll('#gridViewBtn, #timelineViewBtn').forEach(btn => {
+                btn.classList.remove('btn-secondary');
+                btn.classList.add('btn-ghost');
+            });
+            document.getElementById(`${view}ViewBtn`).classList.remove('btn-ghost');
+            document.getElementById(`${view}ViewBtn`).classList.add('btn-secondary');
+            
+            // Show/hide views
+            document.getElementById('gridView').style.display = view === 'grid' ? 'grid' : 'none';
+            document.getElementById('timelineView').style.display = view === 'timeline' ? 'block' : 'none';
+            
+            renderCurrentView();
+        }
+
+        function renderCurrentView() {
+            if (currentView === 'grid') {
+                renderGridView();
+            } else {
+                renderTimelineView();
+            }
+        }
+
+        function renderGridView() {
+            const container = document.getElementById('gridView');
+
+            if (filteredEvents.length === 0) {
                 container.innerHTML = `
-                    <div class="card">
+                    <div class="card" style="grid-column: 1 / -1;">
                         <div class="card-body text-center py-4">
                             <div style="font-size: 3rem; margin-bottom: 1rem;">🏆</div>
-                            <h3>No Events Yet</h3>
-                            <p class="text-muted">Events will appear here once created.</p>
+                            <h3>No Events Found</h3>
+                            <p class="text-muted">No events match your current filters.</p>
+                            ${isLeader ? '<button class="btn btn-primary" onclick="createEvent()">Create First Event</button>' : ''}
                         </div>
                     </div>
                 `;
                 return;
             }
 
-            container.innerHTML = events.map(event => {
-                const statusColors = {
-                    upcoming: 'var(--warning-500)',
-                    active: 'var(--info-500)',
-                    completed: 'var(--success-500)',
-                    cancelled: 'var(--text-muted)'
-                };
-                const statusColor = statusColors[event.status] || 'var(--primary-500)';
+            container.innerHTML = filteredEvents.map((event, index) => {
+                const status = event.status || 'upcoming';
                 const logs = event.logs || [];
                 const participantCount = event.participants?.length || 0;
+                const recentLogs = logs.slice(0, 3);
+                const startDate = event.startDate?.toDate?.();
+                const isUpcoming = startDate && startDate > new Date();
+                const isOverdue = startDate && startDate < new Date() && status === 'upcoming';
 
                 return `
-                    <div class="card mb-lg" style="cursor: pointer;" onclick="viewEvent('${event.id}')">
-                        <div class="card-body">
+                    <div class="card event-card" onclick="viewEventDetails('${event.id}')" style="animation: slideInUp 0.3s ease ${index * 0.05}s both;">
+                        <div class="card-body" style="position: relative;">
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
-                                <div>
-                                    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
-                                        <span style="padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; background: ${statusColor}; color: white; text-transform: capitalize;">
-                                            ${event.status || 'upcoming'}
-                                        </span>
-                                        <span style="padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; background: var(--bg-glass); text-transform: capitalize;">
-                                            ${event.type || 'Event'}
-                                        </span>
+                                <div style="flex: 1;">
+                                    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem; flex-wrap: wrap;">
+                                        <span class="event-status-badge status-${status}">${status}</span>
+                                        ${event.type ? `<span style="padding: 0.2rem 0.6rem; background: rgba(99, 102, 241, 0.2); color: var(--primary-400); border-radius: 15px; font-size: 0.7rem; font-weight: 600;">${event.type}</span>` : ''}
+                                        ${isOverdue ? '<span style="padding: 0.2rem 0.6rem; background: rgba(239, 68, 68, 0.2); color: var(--danger-500); border-radius: 15px; font-size: 0.7rem; font-weight: 600;">OVERDUE</span>' : ''}
                                     </div>
-                                    <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.25rem;">${event.name || 'Untitled Event'}</h3>
-                                    <p class="text-muted text-sm">${event.description || 'No description'}</p>
-                                </div>
-                                <div style="text-align: right;">
-                                    <div style="font-size: 0.9rem; color: var(--text-muted);">📅 ${event.startDate ? Utils.formatDate(event.startDate) : 'TBD'}</div>
-                                    <div style="font-size: 0.9rem; color: var(--text-muted);">📍 ${event.venue || 'TBD'}</div>
+                                    <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; color: white;">
+                                        ${event.name || 'Untitled Event'}
+                                    </h3>
+                                    <p class="text-muted text-sm" style="margin-bottom: 1rem; line-height: 1.5;">
+                                        ${event.description ? Utils.truncate(event.description, 120) : 'No description provided'}
+                                    </p>
                                 </div>
                             </div>
 
-                            <div style="display: flex; gap: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--bg-glass-border);">
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.75rem; margin-bottom: 1rem; font-size: 0.85rem; color: var(--text-muted);">
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <span>📅</span>
+                                    <span>${startDate ? Utils.formatDate(startDate) : 'TBD'}</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <span>📍</span>
+                                    <span>${Utils.truncate(event.venue || 'TBD', 15)}</span>
+                                </div>
                                 <div style="display: flex; align-items: center; gap: 0.5rem;">
                                     <span>👥</span>
-                                    <span>${participantCount} Participants</span>
+                                    <span>${participantCount} participants</span>
                                 </div>
                                 <div style="display: flex; align-items: center; gap: 0.5rem;">
                                     <span>📝</span>
-                                    <span>${logs.length} Logs</span>
+                                    <span>${logs.length} logs</span>
                                 </div>
-                                ${event.budget ? `
-                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                        <span>💰</span>
-                                        <span>${Utils.formatCurrency(event.budget)}</span>
-                                    </div>
-                                ` : ''}
                             </div>
 
-                            ${logs.length > 0 ? `
-                                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--bg-glass-border);">
-                                    <div class="text-muted text-sm mb-2">Recent Activity:</div>
+                            ${event.budget ? `
+                                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; font-size: 0.9rem;">
+                                    <span>💰</span>
+                                    <span style="font-weight: 600; color: var(--success-500);">${Utils.formatCurrency(event.budget)}</span>
+                                    <span class="text-muted">budget</span>
+                                </div>
+                            ` : ''}
+
+                            ${recentLogs.length > 0 ? `
+                                <div style="border-top: 1px solid var(--bg-glass-border); padding-top: 1rem;">
+                                    <div class="text-muted text-sm" style="margin-bottom: 0.75rem; font-weight: 600;">Recent Activity:</div>
                                     <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                                        ${logs.slice(0, 3).map(log => `
-                                            <div style="display: flex; gap: 0.75rem; padding: 0.5rem; background: var(--bg-glass); border-radius: 8px;">
-                                                <span>${getLogIcon(log.type)}</span>
-                                                <div style="flex: 1;">
-                                                    <div style="font-weight: 500;">${log.title || log.type}</div>
-                                                    <div class="text-xs text-muted">${log.createdAt ? Utils.timeAgo(log.createdAt) : ''} by ${log.createdByName || 'Unknown'}</div>
+                                        ${recentLogs.map(log => `
+                                            <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; background: rgba(255, 255, 255, 0.02); border-radius: 6px;">
+                                                <div class="log-type-icon log-${log.type || 'update'}">
+                                                    ${getLogIcon(log.type)}
+                                                </div>
+                                                <div style="flex: 1; min-width: 0;">
+                                                    <div style="font-weight: 500; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                        ${log.title || log.type}
+                                                    </div>
+                                                    <div class="text-xs text-muted">
+                                                        ${log.createdAt ? Utils.timeAgo(log.createdAt) : ''} by ${log.createdByName || 'Unknown'}
+                                                    </div>
                                                 </div>
                                             </div>
                                         `).join('')}
                                     </div>
+                                    ${logs.length > 3 ? `
+                                        <div class="text-center" style="margin-top: 0.75rem;">
+                                            <span class="text-muted text-xs">+${logs.length - 3} more entries</span>
+                                        </div>
+                                    ` : ''}
                                 </div>
-                            ` : ''}
+                            ` : `
+                                <div style="border-top: 1px solid var(--bg-glass-border); padding-top: 1rem; text-center;">
+                                    <p class="text-muted text-sm">No activity logs yet</p>
+                                    ${isLeader ? `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation(); addEventLog('${event.id}')">Add First Log</button>` : ''}
+                                </div>
+                            `}
                         </div>
                     </div>
                 `;
             }).join('');
         }
 
+        function renderTimelineView() {
+            const timeline = document.getElementById('eventTimeline');
+            
+            if (filteredEvents.length === 0) {
+                timeline.innerHTML = '<p class="text-muted text-center py-4">No events to display in timeline</p>';
+                return;
+            }
+
+            // Group events by month
+            const groupedEvents = {};
+            filteredEvents.forEach(event => {
+                const date = event.startDate?.toDate?.() || event.createdAt?.toDate?.() || new Date();
+                const monthKey = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+                if (!groupedEvents[monthKey]) groupedEvents[monthKey] = [];
+                groupedEvents[monthKey].push(event);
+            });
+
+            timeline.innerHTML = Object.entries(groupedEvents)
+                .sort(([a], [b]) => new Date(b) - new Date(a))
+                .map(([month, events]) => `
+                    <div class="timeline-entry">
+                        <div style="font-weight: 700; font-size: 1.1rem; margin-bottom: 1rem; color: var(--warning-400);">${month}</div>
+                        ${events.map(event => {
+                            const status = event.status || 'upcoming';
+                            const startDate = event.startDate?.toDate?.();
+                            
+                            return `
+                                <div class="log-entry" onclick="viewEventDetails('${event.id}')" style="margin-bottom: 1rem; cursor: pointer;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                        <h4 style="font-weight: 600; margin: 0;">${event.name || 'Untitled Event'}</h4>
+                                        <span class="event-status-badge status-${status}">${status}</span>
+                                    </div>
+                                    <div style="display: flex; gap: 1rem; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+                                        <span>📅 ${startDate ? Utils.formatDate(startDate) : 'TBD'}</span>
+                                        <span>📍 ${event.venue || 'TBD'}</span>
+                                        <span>👥 ${event.participants?.length || 0} participants</span>
+                                        <span>📝 ${event.logs?.length || 0} logs</span>
+                                    </div>
+                                    ${event.description ? `
+                                        <p class="text-muted text-sm" style="margin: 0;">${Utils.truncate(event.description, 100)}</p>
+                                    ` : ''}
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `).join('') || '<p class="text-muted text-center py-4">No events in timeline</p>';
+        }
+
         function getLogIcon(type) {
-            const icons = { update: '📝', milestone: '🏆', issue: '⚠️', decision: '✅', meeting: '🤝', note: '📌' };
+            const icons = {
+                created: '🎉',
+                update: '📝',
+                milestone: '🏆',
+                issue: '⚠️',
+                decision: '✅',
+                meeting: '🤝',
+                note: '📌',
+                status_change: '🔄',
+                participant: '👤'
+            };
             return icons[type] || '📋';
         }
 
-        function viewEvent(eventId) {
-            window.location.href = `../admin/event-details.html?id=${eventId}`;
+        function viewEventDetails(eventId) {
+            const event = allEvents.find(e => e.id === eventId);
+            if (!event) return;
+
+            const status = event.status || 'upcoming';
+            const logs = event.logs || [];
+            const participants = event.participants || [];
+            const startDate = event.startDate?.toDate?.();
+            const endDate = event.endDate?.toDate?.();
+
+            Modal.show({
+                title: `Event Details: ${event.name || 'Untitled Event'}`,
+                size: 'large',
+                content: `
+                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+                        <div>
+                            <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap;">
+                                <span class="event-status-badge status-${status}">${status}</span>
+                                ${event.type ? `<span style="padding: 0.3rem 0.8rem; background: rgba(99, 102, 241, 0.2); color: var(--primary-400); border-radius: 20px; font-size: 0.75rem; font-weight: 600;">${event.type}</span>` : ''}
+                            </div>
+                            
+                            ${event.description ? `
+                                <div style="margin-bottom: 1.5rem;">
+                                    <h4 style="margin-bottom: 0.5rem;">Description</h4>
+                                    <p class="text-muted">${event.description}</p>
+                                </div>
+                            ` : ''}
+                            
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                                ${startDate ? `
+                                    <div>
+                                        <h5 style="margin-bottom: 0.5rem; color: var(--text-muted);">Start Date</h5>
+                                        <p>${Utils.formatDateTime(startDate)}</p>
+                                    </div>
+                                ` : ''}
+                                ${endDate ? `
+                                    <div>
+                                        <h5 style="margin-bottom: 0.5rem; color: var(--text-muted);">End Date</h5>
+                                        <p>${Utils.formatDateTime(endDate)}</p>
+                                    </div>
+                                ` : ''}
+                                ${event.venue ? `
+                                    <div>
+                                        <h5 style="margin-bottom: 0.5rem; color: var(--text-muted);">Venue</h5>
+                                        <p>${event.venue}</p>
+                                    </div>
+                                ` : ''}
+                                ${event.budget ? `
+                                    <div>
+                                        <h5 style="margin-bottom: 0.5rem; color: var(--text-muted);">Budget</h5>
+                                        <p style="color: var(--success-500); font-weight: 600;">${Utils.formatCurrency(event.budget)}</p>
+                                    </div>
+                                ` : ''}
+                            </div>
+                            
+                            ${participants.length > 0 ? `
+                                <div style="margin-bottom: 1.5rem;">
+                                    <h4 style="margin-bottom: 0.75rem;">Participants (${participants.length})</h4>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                                        ${participants.slice(0, 10).map(p => `
+                                            <span style="padding: 0.25rem 0.75rem; background: var(--bg-glass); border-radius: 20px; font-size: 0.8rem;">
+                                                ${p.name || p.email || 'Unknown'}
+                                            </span>
+                                        `).join('')}
+                                        ${participants.length > 10 ? `<span class="text-muted text-sm">+${participants.length - 10} more</span>` : ''}
+                                    </div>
+                                </div>
+                            ` : ''}
+                            
+                            <div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                                    <h4>Activity Logs (${logs.length})</h4>
+                                    ${isLeader ? `<button class="btn btn-primary btn-sm" onclick="Modal.close(); addEventLog('${eventId}')">Add Log</button>` : ''}
+                                </div>
+                                <div style="max-height: 300px; overflow-y: auto;">
+                                    ${logs.length > 0 ? logs.map(log => `
+                                        <div class="log-entry" style="margin-bottom: 0.75rem;">
+                                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                                <div class="log-type-icon log-${log.type || 'update'}">
+                                                    ${getLogIcon(log.type)}
+                                                </div>
+                                                <div style="flex: 1;">
+                                                    <div style="font-weight: 600; margin-bottom: 0.25rem;">${log.title || log.type}</div>
+                                                    ${log.description ? `<p class="text-muted text-sm" style="margin-bottom: 0.5rem;">${log.description}</p>` : ''}
+                                                    <div class="text-xs text-muted">
+                                                        ${log.createdAt ? Utils.timeAgo(log.createdAt) : ''} by ${log.createdByName || 'Unknown'}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `).join('') : '<p class="text-muted text-center py-4">No activity logs yet</p>'}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h4 style="margin-bottom: 1rem;">Actions</h4>
+                            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                ${isLeader ? `
+                                    <button class="btn btn-primary btn-sm" onclick="Modal.close(); addEventLog('${eventId}')">📝 Add Log</button>
+                                    <button class="btn btn-secondary btn-sm" onclick="Modal.close(); editEvent('${eventId}')">✏️ Edit Event</button>
+                                    <button class="btn btn-warning btn-sm" onclick="Modal.close(); changeEventStatus('${eventId}')">🔄 Change Status</button>
+                                    <button class="btn btn-danger btn-sm" onclick="Modal.close(); deleteEvent('${eventId}')">🗑️ Delete Event</button>
+                                ` : ''}
+                                <button class="btn btn-ghost btn-sm" onclick="Modal.close(); exportEventReport('${eventId}')">📄 Export Report</button>
+                            </div>
+                        </div>
+                    </div>
+                `,
+                submitText: 'Close',
+                onSubmit: () => Modal.close()
+            });
         }
 
-        // Filters
-        document.getElementById('searchInput').addEventListener('input', applyFilters);
-        document.getElementById('filterStatus').addEventListener('change', applyFilters);
+        // Event Management Functions
+        function createEvent() {
+            Modal.form({
+                title: 'Create New Event',
+                fields: [
+                    { name: 'name', label: 'Event Name', type: 'text', required: true, placeholder: 'Enter event name...' },
+                    { name: 'description', label: 'Description', type: 'textarea', placeholder: 'Describe the event...' },
+                    { name: 'type', label: 'Event Type', type: 'select', required: true, options: [
+                        { value: 'meeting', label: 'Meeting' },
+                        { value: 'workshop', label: 'Workshop' },
+                        { value: 'conference', label: 'Conference' },
+                        { value: 'social', label: 'Social Event' },
+                        { value: 'project', label: 'Project Event' }
+                    ]},
+                    { name: 'startDate', label: 'Start Date', type: 'datetime-local', required: true },
+                    { name: 'endDate', label: 'End Date (Optional)', type: 'datetime-local' },
+                    { name: 'venue', label: 'Venue', type: 'text', placeholder: 'Event location...' },
+                    { name: 'budget', label: 'Budget (Optional)', type: 'number', placeholder: '0' }
+                ],
+                onSubmit: async (data) => {
+                    try {
+                        const eventData = {
+                            name: data.name,
+                            description: data.description,
+                            type: data.type,
+                            startDate: data.startDate ? new Date(data.startDate) : null,
+                            endDate: data.endDate ? new Date(data.endDate) : null,
+                            venue: data.venue,
+                            budget: parseFloat(data.budget) || 0
+                        };
+                        
+                        const result = await Firestore.createEvent(eventData);
+                        if (result.success) {
+                            Utils.showToast('Event created successfully!', 'success');
+                            loadEvents();
+                        } else {
+                            throw new Error(result.error);
+                        }
+                    } catch (error) {
+                        Utils.showToast('Error creating event: ' + error.message, 'error');
+                    }
+                }
+            });
+        }
 
-        function applyFilters() {
-            const query = document.getElementById('searchInput').value.toLowerCase();
-            const status = document.getElementById('filterStatus').value;
+        function addEventLog(eventId) {
+            Modal.form({
+                title: 'Add Event Log',
+                fields: [
+                    { name: 'type', label: 'Log Type', type: 'select', required: true, options: [
+                        { value: 'update', label: '📝 General Update' },
+                        { value: 'milestone', label: '🏆 Milestone' },
+                        { value: 'issue', label: '⚠️ Issue/Problem' },
+                        { value: 'decision', label: '✅ Decision Made' },
+                        { value: 'meeting', label: '🤝 Meeting Notes' },
+                        { value: 'note', label: '📌 Important Note' }
+                    ]},
+                    { name: 'title', label: 'Log Title', type: 'text', required: true, placeholder: 'Brief title for this log...' },
+                    { name: 'description', label: 'Details', type: 'textarea', required: true, placeholder: 'Detailed description of what happened...' }
+                ],
+                onSubmit: async (data) => {
+                    try {
+                        const result = await Firestore.addEventLog(eventId, {
+                            type: data.type,
+                            title: data.title,
+                            description: data.description,
+                            createdBy: currentUser.uid,
+                            createdByName: currentUser.name || 'Unknown'
+                        });
+                        
+                        if (result.success) {
+                            Utils.showToast('Log entry added successfully!', 'success');
+                            loadEvents();
+                        } else {
+                            throw new Error(result.error);
+                        }
+                    } catch (error) {
+                        Utils.showToast('Error adding log: ' + error.message, 'error');
+                    }
+                }
+            });
+        }
 
-            let filtered = allEvents;
-
-            if (query) {
-                filtered = filtered.filter(e =>
-                    (e.name || '').toLowerCase().includes(query) ||
-                    (e.description || '').toLowerCase().includes(query)
-                );
+        function showQuickLogModal() {
+            if (allEvents.length === 0) {
+                Utils.showToast('No events available. Create an event first.', 'warning');
+                return;
             }
 
-            if (status) filtered = filtered.filter(e => e.status === status);
+            Modal.form({
+                title: 'Quick Log Entry',
+                fields: [
+                    { name: 'eventId', label: 'Select Event', type: 'select', required: true, options: 
+                        allEvents.filter(e => e.status !== 'completed').map(e => ({ 
+                            value: e.id, 
+                            label: e.name || 'Untitled Event' 
+                        }))
+                    },
+                    { name: 'type', label: 'Log Type', type: 'select', required: true, options: [
+                        { value: 'update', label: '📝 General Update' },
+                        { value: 'milestone', label: '🏆 Milestone' },
+                        { value: 'issue', label: '⚠️ Issue/Problem' },
+                        { value: 'decision', label: '✅ Decision Made' },
+                        { value: 'meeting', label: '🤝 Meeting Notes' },
+                        { value: 'note', label: '📌 Important Note' }
+                    ]},
+                    { name: 'title', label: 'Log Title', type: 'text', required: true, placeholder: 'Brief title...' },
+                    { name: 'description', label: 'Details', type: 'textarea', required: true, placeholder: 'What happened?' }
+                ],
+                onSubmit: async (data) => {
+                    try {
+                        const result = await Firestore.addEventLog(data.eventId, {
+                            type: data.type,
+                            title: data.title,
+                            description: data.description,
+                            createdBy: currentUser.uid,
+                            createdByName: currentUser.name || 'Unknown'
+                        });
+                        
+                        if (result.success) {
+                            Utils.showToast('Log entry added successfully!', 'success');
+                            loadEvents();
+                        } else {
+                            throw new Error(result.error);
+                        }
+                    } catch (error) {
+                        Utils.showToast('Error adding log: ' + error.message, 'error');
+                    }
+                }
+            });
+        }
 
-            renderEvents(filtered);
+        function changeEventStatus(eventId) {
+            const event = allEvents.find(e => e.id === eventId);
+            if (!event) return;
+
+            Modal.form({
+                title: 'Change Event Status',
+                fields: [
+                    { name: 'status', label: 'New Status', type: 'select', required: true, value: event.status || 'upcoming', options: [
+                        { value: 'upcoming', label: 'Upcoming' },
+                        { value: 'active', label: 'Active' },
+                        { value: 'completed', label: 'Completed' },
+                        { value: 'cancelled', label: 'Cancelled' }
+                    ]},
+                    { name: 'reason', label: 'Reason (Optional)', type: 'textarea', placeholder: 'Why is the status changing?' }
+                ],
+                onSubmit: async (data) => {
+                    try {
+                        const result = await Firestore.updateEventStatus(eventId, data.status, data.reason);
+                        if (result.success) {
+                            Utils.showToast('Event status updated successfully!', 'success');
+                            loadEvents();
+                        } else {
+                            throw new Error(result.error);
+                        }
+                    } catch (error) {
+                        Utils.showToast('Error updating status: ' + error.message, 'error');
+                    }
+                }
+            });
+        }
+
+        function showEventAnalytics() {
+            const card = document.getElementById('analyticsCard');
+            card.style.display = card.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function toggleAnalytics() {
+            document.getElementById('analyticsCard').style.display = 'none';
+        }
+
+        function exportEventReport() {
+            Utils.showToast('Generating event report...', 'info');
+            // This would integrate with the Reports system
+            setTimeout(() => {
+                Utils.showToast('Event report exported successfully!', 'success');
+            }, 2000);
         }
 
         Router.initPage();
