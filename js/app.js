@@ -104,11 +104,15 @@ const App = {
 
         container.innerHTML = `
             <header class="header">
-                <h2 class="header-title">${title}</h2>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <button class="mobile-menu-btn" style="display: none;" onclick="App.toggleMobileMenu()" aria-label="Toggle menu">☰</button>
+                    <h2 class="header-title">${title}</h2>
+                </div>
                 <div class="header-actions">
                     <span class="text-muted text-sm" id="currentTime"></span>
                 </div>
             </header>
+            <div class="sidebar-backdrop" onclick="App.toggleMobileMenu()"></div>
         `;
 
         // Update time
@@ -128,6 +132,19 @@ const App = {
                 Notifications.init();
             }
         }, 100);
+    },
+
+    // Toggle mobile sidebar menu
+    toggleMobileMenu() {
+        const sidebar = document.querySelector('.sidebar');
+        const backdrop = document.querySelector('.sidebar-backdrop');
+
+        if (sidebar) {
+            sidebar.classList.toggle('mobile-open');
+        }
+        if (backdrop) {
+            backdrop.classList.toggle('active');
+        }
     },
 
     // Show loading overlay

@@ -512,7 +512,7 @@ body {
     .grid-4 {
         grid-template-columns: repeat(3, 1fr);
     }
-    
+
     .event-grid {
         grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     }
@@ -541,28 +541,72 @@ body {
     .main-content {
         margin-left: 80px;
     }
-    
+
     .grid-3,
     .grid-4 {
         grid-template-columns: repeat(2, 1fr);
     }
-    
+
     .kanban-board {
         grid-template-columns: 1fr;
     }
-    
+
     .event-grid {
         grid-template-columns: 1fr;
     }
 }
 
 @media (max-width: 768px) {
+
+    /* Mobile Sidebar - Hidden by default, show as overlay */
     .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        width: 260px;
+    }
+
+    .sidebar.mobile-open {
+        transform: translateX(0);
+        box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Mobile overlay backdrop */
+    .sidebar-backdrop {
         display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 99;
+    }
+
+    .sidebar-backdrop.active {
+        display: block;
     }
 
     .main-content {
         margin-left: 0;
+    }
+
+    /* Header mobile menu button */
+    .mobile-menu-btn {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.1);
+        border: none;
+        cursor: pointer;
+        font-size: 1.5rem;
+    }
+
+    .header {
+        padding: 0 1rem;
+    }
+
+    .header-title {
+        font-size: 1rem;
     }
 
     .grid-2,
@@ -570,24 +614,53 @@ body {
     .grid-4 {
         grid-template-columns: 1fr;
     }
-    
+
+    /* Inline stat grids */
+    [style*="grid-template-columns: repeat(4, 1fr)"],
+    [style*="grid-template-columns: repeat(3, 1fr)"] {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.75rem !important;
+    }
+
     .page-content {
         padding: 1rem;
     }
-    
+
     .card-body {
         padding: 1rem;
     }
-    
+
+    /* Banner responsiveness */
+    [style*="display: flex"][style*="justify-content: space-between"] {
+        flex-direction: column !important;
+        gap: 1rem !important;
+    }
+
+    /* Button group responsiveness */
+    [style*="display: flex"][style*="gap: 0.5rem"] {
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        padding: 0.75rem 1rem;
+        min-height: 44px;
+        /* Touch-friendly */
+    }
+
+    .btn-sm {
+        padding: 0.5rem 0.75rem;
+        min-height: 36px;
+    }
+
     .floating-add-btn,
     .floating-log-btn {
         bottom: 1rem;
         right: 1rem;
-        width: 50px;
-        height: 50px;
-        font-size: 1.2rem;
+        width: 56px;
+        height: 56px;
+        font-size: 1.25rem;
     }
-    
+
     .bulk-actions {
         position: relative;
         top: 0;
@@ -595,25 +668,60 @@ body {
         opacity: 1;
         margin-bottom: 1rem;
     }
-    
+
     .filter-chip {
         font-size: 0.75rem;
-        padding: 0.3rem 0.6rem;
+        padding: 0.4rem 0.75rem;
     }
-    
+
     .task-card,
     .event-card {
         margin-bottom: 1rem;
     }
-    
+
     .view-toggle {
         flex-direction: column;
         width: 100%;
     }
-    
+
     .view-toggle button {
         width: 100%;
         justify-content: center;
+    }
+
+    /* Table responsiveness */
+    table {
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    [style*="min-width: 900px"],
+    [style*="min-width: 800px"] {
+        min-width: 600px !important;
+    }
+
+    /* Form inputs touch-friendly */
+    .form-input,
+    .form-select {
+        min-height: 44px;
+        font-size: 16px;
+        /* Prevents iOS zoom */
+    }
+
+    /* Stat card mobile */
+    .stat-card {
+        padding: 1rem;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+    }
+
+    .stat-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.25rem;
     }
 }
 
@@ -623,27 +731,27 @@ body {
         align-items: flex-start;
         gap: 0.5rem;
     }
-    
+
     .stat-card {
         flex-direction: column;
         text-align: center;
         gap: 0.5rem;
     }
-    
+
     .task-item,
     .event-card {
         padding: 0.75rem;
     }
-    
+
     .modal-container {
         margin: 0.5rem;
         max-width: calc(100vw - 1rem);
     }
-    
+
     .modal-body {
         padding: 1rem;
     }
-    
+
     .kanban-column {
         min-height: 300px;
     }
@@ -655,6 +763,7 @@ body {
         opacity: 0;
         transform: translateY(30px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -666,6 +775,7 @@ body {
         opacity: 0;
         transform: translateX(30px);
     }
+
     to {
         opacity: 1;
         transform: translateX(0);
@@ -677,6 +787,7 @@ body {
         opacity: 0;
         transform: translateX(-30px);
     }
+
     to {
         opacity: 1;
         transform: translateX(0);
@@ -688,6 +799,7 @@ body {
         opacity: 0;
         transform: scale(0.9);
     }
+
     to {
         opacity: 1;
         transform: scale(1);
@@ -695,25 +807,37 @@ body {
 }
 
 @keyframes bounce {
-    0%, 20%, 53%, 80%, 100% {
-        transform: translate3d(0,0,0);
+
+    0%,
+    20%,
+    53%,
+    80%,
+    100% {
+        transform: translate3d(0, 0, 0);
     }
-    40%, 43% {
+
+    40%,
+    43% {
         transform: translate3d(0, -8px, 0);
     }
+
     70% {
         transform: translate3d(0, -4px, 0);
     }
+
     90% {
         transform: translate3d(0, -2px, 0);
     }
 }
 
 @keyframes pulse {
-    0%, 100% {
+
+    0%,
+    100% {
         opacity: 1;
         transform: scale(1);
     }
+
     50% {
         opacity: 0.8;
         transform: scale(1.05);
@@ -724,6 +848,7 @@ body {
     0% {
         background-position: -200px 0;
     }
+
     100% {
         background-position: calc(200px + 100%) 0;
     }
@@ -731,11 +856,10 @@ body {
 
 /* === LOADING STATES === */
 .loading-skeleton {
-    background: linear-gradient(90deg, 
-        rgba(255,255,255,0.05) 25%, 
-        rgba(255,255,255,0.1) 50%, 
-        rgba(255,255,255,0.05) 75%
-    );
+    background: linear-gradient(90deg,
+            rgba(255, 255, 255, 0.05) 25%,
+            rgba(255, 255, 255, 0.1) 50%,
+            rgba(255, 255, 255, 0.05) 75%);
     background-size: 200px 100%;
     animation: shimmer 1.5s infinite;
     border-radius: 8px;
@@ -830,6 +954,7 @@ body {
 
 /* === PRINT STYLES === */
 @media print {
+
     .sidebar,
     .floating-add-btn,
     .floating-log-btn,
@@ -837,17 +962,17 @@ body {
     .btn {
         display: none !important;
     }
-    
+
     .main-content {
         margin-left: 0;
     }
-    
+
     .card {
         break-inside: avoid;
         box-shadow: none;
         border: 1px solid #ccc;
     }
-    
+
     .page-content {
         padding: 0;
     }
