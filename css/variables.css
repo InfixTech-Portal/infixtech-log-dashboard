@@ -16,24 +16,26 @@
     /* Danger (Laser Red) */
     --danger-500: #ef4444;
 
-    /* Backgrounds */
+    /* Backgrounds - Enhanced for better visibility */
     --bg-body: #0f172a;
     /* Deep Space */
-    --bg-glass: rgba(30, 41, 59, 0.65);
-    /* Translucent Slate */
-    --bg-glass-border: rgba(255, 255, 255, 0.08);
+    --bg-glass: rgba(30, 41, 59, 0.85);
+    /* More opaque for better readability */
+    --bg-glass-border: rgba(255, 255, 255, 0.12);
+    /* Brighter border */
 
-    /* Text */
+    /* Text - Enhanced contrast */
     --text-main: #ffffff;
-    --text-muted: #94a3b8;
+    --text-muted: #a8b4c4;
+    /* Brighter than before */
 
     /* Dimensions */
     --radius-xl: 16px;
     --radius-2xl: 24px;
 
-    /* Effects */
+    /* Effects - Enhanced visibility */
     --glass-blur: blur(20px);
-    --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.36);
+    --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
     --font-sans: 'Inter', system-ui, sans-serif;
 }
 

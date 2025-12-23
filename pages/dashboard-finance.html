@@ -342,19 +342,23 @@
 
         async function loadEventBudgets() {
             try {
-                // Load events and transactions
-                const [eventsSnap, transSnap] = await Promise.all([
+                // Load events, transactions, and collections
+                const [eventsSnap, transSnap, collectionsSnap] = await Promise.all([
                     db.collection('events').get(),
-                    db.collection('transactions').get()
+                    db.collection('transactions').get(),
+                    db.collection('moneyCollections').get()
                 ]);
 
                 const events = eventsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
                 const transactions = transSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                const collections = collectionsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
                 console.log('📊 Event Budget Debug:', {
                     eventsCount: events.length,
                     transactionsCount: transactions.length,
-                    transactionsWithEvents: transactions.filter(t => t.eventId).length
+                    transactionsWithEvents: transactions.filter(t => t.eventId).length,
+                    collectionsCount: collections.length,
+                    collectionsWithEvents: collections.filter(c => c.eventId).length
                 });
 
                 // Calculate spending per event
@@ -370,6 +374,18 @@
                         } else {
                             eventIncome[t.eventId] = (eventIncome[t.eventId] || 0) + (t.amount || 0);
                         }
+                    }
+                });
+
+                // Also add collection income (paid amounts) per event
+                collections.forEach(c => {
+                    if (c.eventId && c.assignedMembers) {
+                        c.assignedMembers.forEach(m => {
+                            if (m.status === 'paid') {
+                                eventIncome[c.eventId] = (eventIncome[c.eventId] || 0) + (m.amount || 0);
+                                eventTransCount[c.eventId] = (eventTransCount[c.eventId] || 0) + 1;
+                            }
+                        });
                     }
                 });
 
@@ -419,20 +435,38 @@
             }
         }
 
-        function showNewCollectionModal() {
+        async function showNewCollectionModal() {
+            // Load events for dropdown
+            let eventOptions = [{ value: '', label: '🌐 Common (No specific event)' }];
+            try {
+                const eventsSnap = await db.collection('events').get();
+                const events = eventsSnap.docs.map(d => ({ id: d.id, ...d.data() }))
+                    .filter(e => e.isActive !== false);
+                events.forEach(e => eventOptions.push({ value: e.id, label: `🎯 ${e.name || 'Untitled Event'}` }));
+            } catch (error) {
+                console.error('Error loading events:', error);
+            }
+
             Modal.form({
                 title: 'Create Collection Request',
                 fields: [
                     { name: 'title', label: 'Title', placeholder: 'e.g., Monthly Subscription', required: true },
                     { name: 'amount', label: 'Amount per Person (₹)', type: 'number', placeholder: '100', required: true },
+                    { name: 'eventId', label: '🎯 Link to Event (Budget Tracking)', type: 'select', options: eventOptions },
                     { name: 'description', label: 'Description', type: 'textarea', placeholder: 'Reason for collection...' }
                 ],
                 onSubmit: async (data) => {
                     try {
+                        // Find event name if eventId is selected
+                        const selectedEvent = eventOptions.find(e => e.value === data.eventId);
+                        const eventName = data.eventId ? selectedEvent?.label?.replace('🎯 ', '') : 'Common';
+
                         await Firestore.createCollectionRequest({
                             title: data.title,
                             amount: Number(data.amount),
                             description: data.description,
+                            eventId: data.eventId || null,
+                            eventName: eventName,
                             assignedTo: 'all'
                         });
                         Utils.showToast('Collection request created!', 'success');
