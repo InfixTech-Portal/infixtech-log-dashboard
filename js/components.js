@@ -41,51 +41,124 @@ const Modal = {
                 .modal-overlay {
                     position: fixed;
                     inset: 0;
-                    background: rgba(0, 0, 0, 0.7);
-                    backdrop-filter: blur(4px);
+                    background: rgba(0, 0, 0, 0.8);
+                    backdrop-filter: blur(12px);
+                    -webkit-backdrop-filter: blur(12px);
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     z-index: 9999;
                     padding: 1rem;
-                    animation: fadeIn 0.2s ease;
+                    animation: modalFadeIn 0.25s ease-out;
+                }
+                @keyframes modalFadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
                 }
                 .modal-container {
-                    background: rgba(30, 41, 59, 0.98);
-                    border: 1px solid rgba(255,255,255,0.1);
-                    border-radius: 16px;
+                    background: linear-gradient(145deg, rgba(30, 41, 59, 0.98), rgba(15, 23, 42, 0.98));
+                    border: 1px solid rgba(255, 255, 255, 0.15);
+                    border-radius: 20px;
                     width: 100%;
-                    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
-                    animation: slideUp 0.3s ease;
+                    max-height: 90vh;
+                    overflow: hidden;
+                    box-shadow: 
+                        0 25px 60px -15px rgba(0, 0, 0, 0.6),
+                        0 0 0 1px rgba(255, 255, 255, 0.05),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+                    animation: modalSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
                 }
-                @keyframes slideUp {
-                    from { transform: translateY(20px); opacity: 0; }
-                    to { transform: translateY(0); opacity: 1; }
+                @keyframes modalSlideUp {
+                    from { 
+                        transform: translateY(30px) scale(0.97); 
+                        opacity: 0; 
+                    }
+                    to { 
+                        transform: translateY(0) scale(1); 
+                        opacity: 1; 
+                    }
                 }
                 .modal-header {
-                    padding: 1.5rem;
-                    border-bottom: 1px solid rgba(255,255,255,0.1);
+                    padding: 1.5rem 1.75rem;
+                    background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.1));
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
                 }
-                .modal-title { font-size: 1.25rem; font-weight: 600; margin: 0; }
+                .modal-title { 
+                    font-size: 1.35rem; 
+                    font-weight: 700; 
+                    margin: 0;
+                    color: white;
+                    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                }
                 .modal-close {
-                    background: none;
+                    background: rgba(255, 255, 255, 0.1);
                     border: none;
-                    color: var(--text-muted);
+                    color: rgba(255, 255, 255, 0.7);
                     font-size: 1.5rem;
                     cursor: pointer;
                     line-height: 1;
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 10px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    transition: all 0.2s ease;
                 }
-                .modal-close:hover { color: white; }
-                .modal-body { padding: 1.5rem; }
+                .modal-close:hover { 
+                    background: rgba(239, 68, 68, 0.3);
+                    color: #fca5a5;
+                    transform: scale(1.05);
+                }
+                .modal-body { 
+                    padding: 1.75rem;
+                    max-height: 60vh;
+                    overflow-y: auto;
+                }
                 .modal-footer {
-                    padding: 1rem 1.5rem;
-                    border-top: 1px solid rgba(255,255,255,0.1);
+                    padding: 1.25rem 1.75rem;
+                    background: rgba(0, 0, 0, 0.2);
+                    border-top: 1px solid rgba(255, 255, 255, 0.08);
                     display: flex;
                     justify-content: flex-end;
-                    gap: 0.75rem;
+                    gap: 0.875rem;
+                }
+                .modal-footer .btn {
+                    min-width: 120px;
+                    padding: 0.75rem 1.5rem;
+                    font-weight: 600;
+                }
+                @media (max-width: 768px) {
+                    .modal-overlay {
+                        padding: 0.5rem;
+                        align-items: flex-end;
+                    }
+                    .modal-container {
+                        max-height: 85vh;
+                        border-radius: 20px 20px 0 0;
+                        margin-bottom: 0;
+                    }
+                    .modal-header {
+                        padding: 1.25rem;
+                    }
+                    .modal-title {
+                        font-size: 1.15rem;
+                    }
+                    .modal-body {
+                        padding: 1.25rem;
+                        max-height: 50vh;
+                    }
+                    .modal-footer {
+                        padding: 1rem;
+                        flex-direction: column;
+                    }
+                    .modal-footer .btn {
+                        width: 100%;
+                        min-height: 48px;
+                    }
                 }
             `;
             document.head.appendChild(style);
