@@ -6,14 +6,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login | INFI X TECH Log Portal</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/tsparticles-slim@2.0.6/tsparticles.slim.bundle.min.js"></script>
     <style>
+        :root {
+            --bg-main: #0f172a;
+            --bg-card: rgba(15, 23, 42, 0.85);
+            --border-soft: rgba(255, 255, 255, 0.08);
+            --primary: #6366f1;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
         body {
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            margin: 0;
+            font-family: "Inter", system-ui, sans-serif;
             min-height: 100vh;
+            display: grid;
+            place-items: center;
+            background: radial-gradient(circle at 30% 30%, #1e293b, #020617);
             overflow: hidden;
         }
 
@@ -23,21 +32,21 @@
             z-index: 0;
         }
 
-        .login-container {
+        .login-wrapper {
             position: relative;
-            z-index: 10;
+            z-index: 5;
             width: 100%;
-            max-width: 440px;
-            padding: 1rem;
+            max-width: 460px;
+            padding: 1.5rem;
         }
 
         .login-card {
-            background: rgba(30, 41, 59, 0.85);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            padding: 3rem;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            background: var(--bg-card);
+            border: 1px solid var(--border-soft);
+            border-radius: 20px;
+            padding: 3rem 2.5rem;
+            box-shadow: 0 40px 80px rgba(0, 0, 0, .6);
+            backdrop-filter: blur(18px);
         }
 
         .brand-header {
@@ -45,49 +54,84 @@
             margin-bottom: 2.5rem;
         }
 
-        .brand-logo {
-            font-size: 3.5rem;
-            margin-bottom: 1rem;
-        }
-
         .brand-title {
-            font-size: 1.75rem;
+            font-size: 2rem;
             font-weight: 700;
-            color: white;
-            margin-bottom: 0.25rem;
+            color: var(--text-main);
+            letter-spacing: 0.5px;
         }
 
         .brand-subtitle {
-            color: var(--text-muted);
             font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-label {
+            font-size: .85rem;
+            color: var(--text-muted);
+            margin-bottom: .35rem;
+            display: block;
         }
 
         .form-input {
-            margin-bottom: 1.25rem;
+            width: 100%;
+            padding: .85rem .9rem;
+            border-radius: 10px;
+            border: 1px solid var(--border-soft);
+            background: rgba(2, 6, 23, .6);
+            color: var(--text-main);
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        .form-input:focus {
+            border-color: var(--primary);
         }
 
         .btn-login {
             width: 100%;
-            padding: 1rem;
+            margin-top: .75rem;
+            padding: .9rem;
+            border-radius: 12px;
+            font-weight: 600;
             font-size: 1rem;
-            margin-top: 0.5rem;
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            border: none;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-login:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-login:disabled {
+            opacity: .7;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, .15);
+            border: 1px solid #ef4444;
+            color: #fecaca;
+            padding: .75rem 1rem;
+            border-radius: 10px;
+            font-size: .85rem;
+            margin-bottom: 1rem;
+            display: none;
         }
 
         .login-footer {
             margin-top: 2rem;
             text-align: center;
+            font-size: .75rem;
             color: var(--text-muted);
-            font-size: 0.8rem;
-        }
-
-        .error-message {
-            background: rgba(239, 68, 68, 0.2);
-            border: 1px solid var(--danger-500);
-            color: var(--danger-500);
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            display: none;
         }
     </style>
 </head>
@@ -95,78 +139,62 @@
 <body>
     <div id="particles-js"></div>
 
-    <div class="login-container">
+    <div class="login-wrapper">
         <div class="login-card">
+
             <div class="brand-header">
-                <div class="brand-logo">🌌</div>
-                <h1 class="brand-title">LOG PORTAL</h1>
-                <p class="brand-subtitle">INFI X TECH Team Management System</p>
+                <div class="brand-title">INFI X TECH</div>
+                <div class="brand-subtitle">Secure Team Management Portal</div>
             </div>
 
             <div id="errorBox" class="error-message"></div>
 
             <form id="loginForm">
+
                 <div class="form-group">
                     <label class="form-label">Email Address</label>
-                    <input type="email" class="form-input" id="email" required placeholder="your@email.com"
+                    <input id="email" type="email" class="form-input" placeholder="name@company.com" required
                         autocomplete="email">
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">Password</label>
-                    <input type="password" class="form-input" id="password" required placeholder="••••••••"
+                    <input id="password" type="password" class="form-input" placeholder="••••••••" required
                         autocomplete="current-password">
                 </div>
 
-                <button type="submit" class="btn btn-primary btn-login" id="loginBtn">
+                <button id="loginBtn" class="btn-login" type="submit">
                     Sign In
                 </button>
+
             </form>
 
             <div class="login-footer">
-                <p>Secure authentication powered by Firebase</p>
+                Enterprise authentication secured by Firebase
             </div>
+
         </div>
     </div>
 
-    <!-- Firebase -->
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-
     <script src="js/firebase-config.js"></script>
-    <script src="js/utils.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/router.js"></script>
 
     <script>
-        // Particles
-        tsParticles.load("particles-js", {
-            background: { color: { value: "transparent" } },
-            fpsLimit: 60,
-            particles: {
-                color: { value: "#6366f1" },
-                links: { color: "#6366f1", distance: 150, enable: true, opacity: 0.2, width: 1 },
-                move: { enable: true, speed: 1, direction: "none", outModes: "out" },
-                number: { density: { enable: true, area: 800 }, value: 50 },
-                opacity: { value: 0.4 },
-                shape: { type: "circle" },
-                size: { value: { min: 1, max: 3 } }
-            }
-        });
-
-        // Check if already logged in
+        // Check if already logged in and redirect
         firebase.auth().onAuthStateChanged(async (user) => {
             if (user) {
-                // Already logged in - redirect
                 const doc = await db.collection('users').doc(user.uid).get();
                 const userData = doc.exists ? doc.data() : { roles: ['member'] };
-                const role = Auth.getPrimaryRole(userData.roles);
+                const roles = userData.roles || ['member'];
+                const role = roles.includes('leader') ? 'leader' : roles.includes('finance') ? 'finance' : 'member';
                 window.location.href = `pages/dashboard-${role}.html`;
             }
         });
 
-        // Login Form
+        // Login Form Handler
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -175,10 +203,8 @@
             const btn = document.getElementById('loginBtn');
             const errorBox = document.getElementById('errorBox');
 
-            // Reset error
             errorBox.style.display = 'none';
 
-            // Validation
             if (!email || !password) {
                 errorBox.textContent = 'Please enter both email and password.';
                 errorBox.style.display = 'block';
@@ -189,23 +215,31 @@
                 btn.textContent = 'Signing in...';
                 btn.disabled = true;
 
-                const result = await Auth.login(email, password);
+                // Firebase authentication
+                const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
+                const user = userCredential.user;
 
-                if (result.success) {
-                    btn.textContent = 'Redirecting...';
-                    Utils.showToast(`Welcome back, ${result.user.name || 'User'}!`, 'success');
+                // Get user data from Firestore
+                const doc = await db.collection('users').doc(user.uid).get();
+                const userData = doc.exists ? doc.data() : { roles: ['member'] };
+                const roles = userData.roles || ['member'];
 
-                    // Redirect based on role
-                    const role = Auth.getPrimaryRole(result.user.roles);
-                    setTimeout(() => {
-                        window.location.href = `pages/dashboard-${role}.html`;
-                    }, 500);
-                } else {
-                    throw new Error(result.error);
-                }
+                btn.textContent = 'Redirecting...';
+
+                // Redirect based on role
+                const role = roles.includes('leader') ? 'leader' : roles.includes('finance') ? 'finance' : 'member';
+                setTimeout(() => {
+                    window.location.href = `pages/dashboard-${role}.html`;
+                }, 500);
 
             } catch (error) {
-                errorBox.textContent = error.message || 'Login failed. Please try again.';
+                let message = 'Login failed. Please try again.';
+                if (error.code === 'auth/user-not-found') message = 'No account found with this email.';
+                else if (error.code === 'auth/wrong-password') message = 'Incorrect password.';
+                else if (error.code === 'auth/invalid-email') message = 'Invalid email address.';
+                else if (error.code === 'auth/too-many-requests') message = 'Too many attempts. Try again later.';
+
+                errorBox.textContent = message;
                 errorBox.style.display = 'block';
                 btn.textContent = 'Sign In';
                 btn.disabled = false;

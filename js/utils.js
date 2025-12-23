@@ -1,3 +1,7 @@
+// =============================================
+// UTILS.JS - Utility Functions
+// =============================================
+
 const Utils = {
     // === DATE/TIME ===
     formatDate(date) {
@@ -52,26 +56,25 @@ const Utils = {
 
     // === TOAST NOTIFICATIONS ===
     showToast(message, type = 'info') {
-        // Remove existing toast
         const existing = document.querySelector('.toast-notification');
         if (existing) existing.remove();
 
         const toast = document.createElement('div');
         toast.className = 'toast-notification';
 
-        const colorConfigs = {
-            info: { bg: 'linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(30, 41, 59, 0.95))', border: 'var(--primary-500)', icon: 'ℹ️' },
-            success: { bg: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(30, 41, 59, 0.95))', border: 'var(--success-500)', icon: '✅' },
-            error: { bg: 'linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(30, 41, 59, 0.95))', border: 'var(--danger-500)', icon: '❌' },
-            warning: { bg: 'linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(30, 41, 59, 0.95))', border: 'var(--warning-500)', icon: '⚠️' }
+        const colors = {
+            info: { bg: 'rgba(99, 102, 241, 0.2)', border: 'var(--primary-500)', icon: 'ℹ️' },
+            success: { bg: 'rgba(16, 185, 129, 0.2)', border: 'var(--success-500)', icon: '✅' },
+            error: { bg: 'rgba(239, 68, 68, 0.2)', border: 'var(--danger-500)', icon: '❌' },
+            warning: { bg: 'rgba(245, 158, 11, 0.2)', border: 'var(--warning-500)', icon: '⚠️' }
         };
 
-        const config = colorConfigs[type] || colorConfigs.info;
+        const config = colors[type] || colors.info;
 
         toast.innerHTML = `
-            <span style="font-size: 1.35rem;">${config.icon}</span>
-            <span style="flex: 1; font-weight: 500;">${message}</span>
-            <button onclick="this.parentElement.remove()" style="background: none; border: none; color: rgba(255,255,255,0.6); cursor: pointer; font-size: 1.25rem; padding: 4px;">×</button>
+            <span style="font-size: 1.25rem;">${config.icon}</span>
+            <span style="flex: 1;">${message}</span>
+            <button onclick="this.parentElement.remove()" style="background: none; border: none; color: rgba(255,255,255,0.6); cursor: pointer; font-size: 1.25rem;">×</button>
         `;
 
         Object.assign(toast.style, {
@@ -80,22 +83,20 @@ const Utils = {
             right: '24px',
             background: config.bg,
             backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
             color: 'white',
             padding: '1rem 1.25rem',
             borderRadius: '14px',
-            boxShadow: '0 15px 50px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1)',
+            boxShadow: '0 15px 50px rgba(0,0,0,0.4)',
             display: 'flex',
             alignItems: 'center',
             gap: '12px',
             zIndex: '10000',
             borderLeft: `4px solid ${config.border}`,
-            animation: 'toastSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+            animation: 'toastSlideIn 0.4s ease',
             maxWidth: '420px',
             minWidth: '280px'
         });
 
-        // Add animation
         const style = document.createElement('style');
         style.textContent = `
             @keyframes toastSlideIn {
@@ -106,21 +107,11 @@ const Utils = {
                 from { transform: translateX(0); opacity: 1; }
                 to { transform: translateX(120%); opacity: 0; }
             }
-            @media (max-width: 768px) {
-                .toast-notification {
-                    left: 1rem !important;
-                    right: 1rem !important;
-                    bottom: 1rem !important;
-                    max-width: none !important;
-                    min-width: 0 !important;
-                }
-            }
         `;
         document.head.appendChild(style);
 
         document.body.appendChild(toast);
 
-        // Auto remove
         setTimeout(() => {
             toast.style.animation = 'toastSlideOut 0.35s ease forwards';
             setTimeout(() => toast.remove(), 350);
